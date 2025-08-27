@@ -1,22 +1,23 @@
 package com.laporeon.posts_api.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
+import com.laporeon.posts_api.dto.PostDTO;
+import com.laporeon.posts_api.entities.Post;
+import com.laporeon.posts_api.services.PostService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/posts")
+@RequiredArgsConstructor
 public class PostController {
 
-    private Map<String, Object>[] posts = new Map[]{
-            Map.of("id", 1, "title", "Using Records in Java"),
-            Map.of("id", 2, "title", "Learn HTTP Status"),
-    };
+    private final PostService postService;
 
-    @GetMapping
-    public Map<String, Object>[] getPosts() {
-        return posts;
+    @PostMapping
+    public ResponseEntity<Post> createPost(@Valid @RequestBody PostDTO postDTO) {
+        Post post = postService.create(postDTO);
+        return ResponseEntity.status(201).body(post);
     }
 }
