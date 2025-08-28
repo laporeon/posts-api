@@ -6,6 +6,8 @@ import com.laporeon.posts_api.repositories.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -15,6 +17,10 @@ public class PostService {
     public Post create(PostDTO postDTO) {
         Post post = Post.fromDTO(postDTO);
         return postRepository.save(post);
+    }
+
+    public List<Post> getAllPosts() {
+        return postRepository.findAll();
     }
 
 }
