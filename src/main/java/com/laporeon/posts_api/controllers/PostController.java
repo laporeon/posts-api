@@ -17,20 +17,28 @@ public class PostController {
 
     private final PostService postService;
 
+    // TODO: Create pagination for getAllPosts method
     @GetMapping
     public ResponseEntity<List<Post>> getAllPosts() {
         List<Post> posts = postService.getAllPosts();
-
-        if (posts.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.ok().body(posts);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Post> findPostById(@PathVariable("id") String id) {
+        Post post = postService.findById(id);
+        return ResponseEntity.ok().body(post);
     }
 
     @PostMapping
     public ResponseEntity<Post> createPost(@Valid @RequestBody PostDTO postDTO) {
         Post post = postService.create(postDTO);
         return ResponseEntity.status(201).body(post);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePost(@PathVariable("id") String id) {
+        postService.deletePost(id);
+        return ResponseEntity.noContent().build();
     }
 }
