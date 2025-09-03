@@ -21,21 +21,31 @@ public class PostService {
     }
 
     public Post findById(String id) {
-        return postRepository.findById(id).orElseThrow(() -> new PostNotFoundException("Post not found."));
+        return postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
     public List<Post> getAllPosts() {
         List<Post> postList = postRepository.findAll();
 
         if(postList.isEmpty()) {
-            throw new PostNotFoundException("No posts found.");
+            throw new PostNotFoundException();
         }
 
         return postList;
     }
 
+    public Post updatePost(String id, PostDTO postDTO) {
+        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
+
+        Post updatedPost = Post.fromDTO(postDTO);
+        updatedPost.setId(post.getId());
+        updatedPost.setCreatedAt(post.getCreatedAt());
+
+        return postRepository.save(updatedPost);
+    }
+
     public void deletePost(String id) {
-        postRepository.findById(id).orElseThrow(() -> new PostNotFoundException("Post not found."));
+        postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
 
         postRepository.deleteById(id);
     }
