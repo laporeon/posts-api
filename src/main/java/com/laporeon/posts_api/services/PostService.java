@@ -5,6 +5,8 @@ import com.laporeon.posts_api.entities.Post;
 import com.laporeon.posts_api.exceptions.PostNotFoundException;
 import com.laporeon.posts_api.repositories.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,12 +26,8 @@ public class PostService {
         return postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    public List<Post> getAllPosts() {
-        List<Post> postList = postRepository.findAll();
-
-        if(postList.isEmpty()) {
-            throw new PostNotFoundException();
-        }
+    public Page<Post> getAllPosts(Pageable pageable) {
+        Page<Post> postList = postRepository.findAll(pageable);
 
         return postList;
     }
