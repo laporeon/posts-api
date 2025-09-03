@@ -5,9 +5,12 @@ import com.laporeon.posts_api.entities.Post;
 import com.laporeon.posts_api.services.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -33,7 +36,13 @@ public class PostController {
     @PostMapping
     public ResponseEntity<Post> createPost(@Valid @RequestBody PostDTO postDTO) {
         Post post = postService.create(postDTO);
-        return ResponseEntity.status(201).body(post);
+        return ResponseEntity.status(HttpStatus.CREATED).body(post);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Post> updatePost(@PathVariable("id") String id, @Valid @RequestBody PostDTO postDTO) {
+        Post post = postService.updatePost(id, postDTO);
+        return ResponseEntity.ok().body(post);
     }
 
     @DeleteMapping("/{id}")
