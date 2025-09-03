@@ -5,6 +5,7 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
@@ -23,9 +24,11 @@ public class Post {
     public String body;
 
     @CreatedDate
+    @Field("created_at")
     public LocalDateTime createdAt;
 
     @LastModifiedDate
+    @Field("updated_at")
     public LocalDateTime updatedAt;
 
     public static Post fromDTO(PostDTO postDTO) {
