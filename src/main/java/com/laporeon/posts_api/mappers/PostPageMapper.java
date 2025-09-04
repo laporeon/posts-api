@@ -1,14 +1,14 @@
 package com.laporeon.posts_api.mappers;
 
-import com.laporeon.posts_api.dto.PageResponseDTO;
+import com.laporeon.posts_api.dto.response.PageablePostResponseDTO;
 import com.laporeon.posts_api.entities.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PostPageMapper {
-    public PageResponseDTO<Post> toDto(Page<Post> pagePosts) {
-        return new PageResponseDTO(
+    public PageablePostResponseDTO<Post> toDto(Page<Post> pagePosts) {
+        return new PageablePostResponseDTO(
                 pagePosts.getContent(),
                 pagePosts.getNumber(),
                 pagePosts.getSize(),
