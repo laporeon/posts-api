@@ -1,7 +1,8 @@
 package com.laporeon.posts_api.controllers;
 
-import com.laporeon.posts_api.dto.PageResponseDTO;
-import com.laporeon.posts_api.dto.PostDTO;
+import com.laporeon.posts_api.dto.response.PageablePostResponseDTO;
+import com.laporeon.posts_api.dto.request.PostRequestDTO;
+import com.laporeon.posts_api.dto.response.PostResponseDTO;
 import com.laporeon.posts_api.entities.Post;
 import com.laporeon.posts_api.services.PostService;
 import com.laporeon.posts_api.mappers.PostPageMapper;
@@ -25,7 +26,7 @@ public class PostController {
     private final PostPageMapper mapper;
 
     @GetMapping
-    public ResponseEntity<PageResponseDTO> getAllPosts(
+    public ResponseEntity<PageablePostResponseDTO> getAllPosts(
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @RequestParam(value = "size", required = false, defaultValue = "5") int size,
             @RequestParam(value = "orderBy", required = false, defaultValue = "title") String orderBy,
@@ -35,27 +36,33 @@ public class PostController {
                 Sort.by(Sort.Direction.valueOf(direction.toUpperCase()), orderBy));
 
         Page<Post> posts = postService.getAllPosts(pageable);
-        PageResponseDTO<Post> response = mapper.toDto(posts);
+        PageablePostResponseDTO<Post> response = mapper.toDto(posts);
         return ResponseEntity.ok().body(response);
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<Post> findPostById(@PathVariable("id") String id) {
+    public ResponseEntity<PostResponseDTO> findPostById(@PathVariable("id") String id) {
         Post post = postService.findById(id);
-        return ResponseEntity.ok().body(post);
+        PostResponseDTO postResponseDTO = new PostResponseDTO(post.getId(), post.getTitle(),
+                post.getDescription(), post.getBody(), post.getCreatedAt(), post.getUpdatedAt());
+        return ResponseEntity.ok().body(postResponseDTO);
     }
 
     @PostMapping
-    public ResponseEntity<Post> createPost(@Valid @RequestBody PostDTO postDTO) {
-        Post post = postService.create(postDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(post);
+    public ResponseEntity<PostResponseDTO> createPost(@Valid @RequestBody PostRequestDTO postRequestDTO) {
+        Post post = postService.create(postRequestDTO);
+        PostResponseDTO postResponseDTO = new PostResponseDTO(post.getId(), post.getTitle(),
+                post.getDescription(), post.getBody(), post.getCreatedAt(), post.getUpdatedAt());
+        return ResponseEntity.status(HttpStatus.CREATED).body(postResponseDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Post> updatePost(@PathVariable("id") String id, @Valid @RequestBody PostDTO postDTO) {
-        Post post = postService.updatePost(id, postDTO);
-        return ResponseEntity.ok().body(post);
+    public ResponseEntity<PostResponseDTO> updatePost(@PathVariable("id") String id, @Valid @RequestBody PostRequestDTO postRequestDTO) {
+        Post post = postService.updatePost(id, postRequestDTO);
+        PostResponseDTO postResponseDTO = new PostResponseDTO(post.getId(), post.getTitle(),
+                post.getDescription(), post.getBody(), post.getCreatedAt(), post.getUpdatedAt());
+        return ResponseEntity.ok().body(postResponseDTO);
     }
 
     @DeleteMapping("/{id}")

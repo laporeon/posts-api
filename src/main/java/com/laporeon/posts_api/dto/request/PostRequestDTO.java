@@ -1,9 +1,9 @@
-package com.laporeon.posts_api.dto;
+package com.laporeon.posts_api.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record PostDTO(
+public record PostRequestDTO(
         @NotBlank(message = "Title is required.")
         @Size(min = 3, max = 100, message = "Title must be between {min} and {max} characters long.")
         String title,
