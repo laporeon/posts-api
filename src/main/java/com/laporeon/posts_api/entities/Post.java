@@ -1,6 +1,6 @@
 package com.laporeon.posts_api.entities;
 
-import com.laporeon.posts_api.dto.PostDTO;
+import com.laporeon.posts_api.dto.request.PostRequestDTO;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -31,11 +31,11 @@ public class Post {
     @Field("updated_at")
     public LocalDateTime updatedAt;
 
-    public static Post fromDTO(PostDTO postDTO) {
+    public static Post fromDTO(PostRequestDTO postRequestDTO) {
         Post post = new Post();
-        post.setTitle(postDTO.title());
-        post.setDescription(postDTO.description());
-        post.setBody(postDTO.body());
+        post.setTitle(postRequestDTO.title());
+        post.setDescription(postRequestDTO.description());
+        post.setBody(postRequestDTO.body());
         return post;
     }
 }
