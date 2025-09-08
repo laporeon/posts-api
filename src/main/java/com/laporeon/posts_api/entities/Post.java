@@ -1,6 +1,5 @@
 package com.laporeon.posts_api.entities;
 
-import com.laporeon.posts_api.dto.request.PostRequestDTO;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -15,27 +14,20 @@ import java.time.LocalDateTime;
 public class Post {
 
     @MongoId
-    public String id;
+    private String id;
 
-    public String title;
+    private String title;
 
-    public String description;
+    private String description;
 
-    public String body;
+    private String body;
 
     @CreatedDate
     @Field("created_at")
-    public LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
     @Field("updated_at")
-    public LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
-    public static Post fromDTO(PostRequestDTO postRequestDTO) {
-        Post post = new Post();
-        post.setTitle(postRequestDTO.title());
-        post.setDescription(postRequestDTO.description());
-        post.setBody(postRequestDTO.body());
-        return post;
-    }
 }
