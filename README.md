@@ -68,7 +68,7 @@ Once started, application will be available at `http://localhost:8080/api/v1/pos
 
 If you receive a port conflict error like:
 ```
-Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint mongodb (...): failed to bind host port for 0.0.0.0:27017:172.21.0.2:27017/tcp: address already in use
+Error response from daemon: (...): failed to bind host port for 0.0.0.0:27017:172.21.0.2:27017/tcp: address already in use
 ```
 
 This means MongoDB is already running locally on your system. You'll need to:
