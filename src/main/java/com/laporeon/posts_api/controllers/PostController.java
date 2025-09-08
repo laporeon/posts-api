@@ -7,6 +7,7 @@ import com.laporeon.posts_api.dto.request.PostRequestDTO;
 import com.laporeon.posts_api.dto.response.PostResponseDTO;
 import com.laporeon.posts_api.entities.Post;
 import com.laporeon.posts_api.exceptions.APIErrorResponse;
+import com.laporeon.posts_api.mappers.PostMapper;
 import com.laporeon.posts_api.services.PostService;
 import com.laporeon.posts_api.mappers.PostPageMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +34,8 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
-    private final PostPageMapper mapper;
+    private final PostPageMapper pageMapper;
+    private final PostMapper postMapper;
 
 
     @Operation(summary = "Retrieve existing posts.")
@@ -56,7 +58,7 @@ public class PostController {
                 Sort.by(Sort.Direction.valueOf(direction.toUpperCase()), orderBy));
 
         Page<Post> posts = postService.getAllPosts(pageable);
-        PageablePostResponseDTO<Post> response = mapper.toDto(posts);
+        PageablePostResponseDTO<PostResponseDTO> response = pageMapper.toDto(posts);
         return ResponseEntity.ok().body(response);
     }
 
@@ -81,8 +83,7 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<PostResponseDTO> findPostById(@PathVariable("id") String id) {
         Post post = postService.findById(id);
-        PostResponseDTO postResponseDTO = new PostResponseDTO(post.getId(), post.getTitle(),
-                post.getDescription(), post.getBody(), post.getCreatedAt(), post.getUpdatedAt());
+        PostResponseDTO postResponseDTO = postMapper.toDto(post);
         return ResponseEntity.ok().body(postResponseDTO);
     }
 
@@ -107,8 +108,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostResponseDTO> createPost(@Valid @RequestBody PostRequestDTO postRequestDTO) {
         Post post = postService.create(postRequestDTO);
-        PostResponseDTO postResponseDTO = new PostResponseDTO(post.getId(), post.getTitle(),
-                post.getDescription(), post.getBody(), post.getCreatedAt(), post.getUpdatedAt());
+        PostResponseDTO postResponseDTO = postMapper.toDto(post);
         return ResponseEntity.status(HttpStatus.CREATED).body(postResponseDTO);
     }
 
@@ -133,8 +133,7 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<PostResponseDTO> updatePost(@PathVariable("id") String id, @Valid @RequestBody PostRequestDTO postRequestDTO) {
         Post post = postService.updatePost(id, postRequestDTO);
-        PostResponseDTO postResponseDTO = new PostResponseDTO(post.getId(), post.getTitle(),
-                post.getDescription(), post.getBody(), post.getCreatedAt(), post.getUpdatedAt());
+        PostResponseDTO postResponseDTO = postMapper.toDto(post);
         return ResponseEntity.ok().body(postResponseDTO);
     }
 
