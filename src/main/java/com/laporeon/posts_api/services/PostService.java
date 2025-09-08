@@ -3,6 +3,7 @@ package com.laporeon.posts_api.services;
 import com.laporeon.posts_api.dto.request.PostRequestDTO;
 import com.laporeon.posts_api.entities.Post;
 import com.laporeon.posts_api.exceptions.PostNotFoundException;
+import com.laporeon.posts_api.mappers.PostMapper;
 import com.laporeon.posts_api.repositories.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,9 +15,10 @@ import org.springframework.stereotype.Service;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostMapper postMapper;
 
     public Post create(PostRequestDTO postRequestDTO) {
-        Post post = Post.fromDTO(postRequestDTO);
+        Post post = postMapper.fromDto(postRequestDTO);
         return postRepository.save(post);
     }
 
@@ -25,19 +27,15 @@ public class PostService {
     }
 
     public Page<Post> getAllPosts(Pageable pageable) {
-        Page<Post> postList = postRepository.findAll(pageable);
-
-        return postList;
+        return postRepository.findAll(pageable);
     }
 
     public Post updatePost(String id, PostRequestDTO postRequestDTO) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
+        Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
 
-        Post updatedPost = Post.fromDTO(postRequestDTO);
-        updatedPost.setId(post.getId());
-        updatedPost.setCreatedAt(post.getCreatedAt());
+        postMapper.updateEntity(existingPost, postRequestDTO);
 
-        return postRepository.save(updatedPost);
+        return postRepository.save(existingPost);
     }
 
     public void deletePost(String id) {
