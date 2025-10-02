@@ -50,7 +50,7 @@ public class PostController {
     @GetMapping
     public ResponseEntity<PageablePostResponseDTO> getAllPosts(
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-            @RequestParam(value = "size", required = false, defaultValue = "5") int size,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
             @RequestParam(value = "orderBy", required = false, defaultValue = "title") String orderBy,
             @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
 
@@ -58,7 +58,7 @@ public class PostController {
                 Sort.by(Sort.Direction.valueOf(direction.toUpperCase()), orderBy));
 
         Page<Post> posts = postService.getAllPosts(pageable);
-        PageablePostResponseDTO<PostResponseDTO> response = pageMapper.toDto(posts);
+        PageablePostResponseDTO<PostResponseDTO> response = pageMapper.toDTO(posts);
         return ResponseEntity.ok().body(response);
     }
 
@@ -83,7 +83,7 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<PostResponseDTO> findPostById(@PathVariable("id") String id) {
         Post post = postService.findById(id);
-        PostResponseDTO postResponseDTO = postMapper.toDto(post);
+        PostResponseDTO postResponseDTO = postMapper.toDTO(post);
         return ResponseEntity.ok().body(postResponseDTO);
     }
 
@@ -108,7 +108,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostResponseDTO> createPost(@Valid @RequestBody PostRequestDTO postRequestDTO) {
         Post post = postService.create(postRequestDTO);
-        PostResponseDTO postResponseDTO = postMapper.toDto(post);
+        PostResponseDTO postResponseDTO = postMapper.toDTO(post);
         return ResponseEntity.status(HttpStatus.CREATED).body(postResponseDTO);
     }
 
@@ -133,7 +133,7 @@ public class PostController {
     @PutMapping("/{id}")
     public ResponseEntity<PostResponseDTO> updatePost(@PathVariable("id") String id, @Valid @RequestBody PostRequestDTO postRequestDTO) {
         Post post = postService.updatePost(id, postRequestDTO);
-        PostResponseDTO postResponseDTO = postMapper.toDto(post);
+        PostResponseDTO postResponseDTO = postMapper.toDTO(post);
         return ResponseEntity.ok().body(postResponseDTO);
     }
 
