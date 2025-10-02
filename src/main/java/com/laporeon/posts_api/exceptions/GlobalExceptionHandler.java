@@ -22,12 +22,7 @@ public class GlobalExceptionHandler {
                                 .map(error -> error.getDefaultMessage())
                                 .collect(Collectors.toList());
 
-        APIErrorResponse error = new APIErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.name(),
-                errors,
-                Instant.now()
-        );
+        APIErrorResponse error = buildError(HttpStatus.BAD_REQUEST, errors);
 
         return ResponseEntity.badRequest().body(error);
     }
@@ -35,13 +30,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PostNotFoundException.class)
     public ResponseEntity<APIErrorResponse> handlePostNotFoundException(PostNotFoundException ex) {
 
-        APIErrorResponse error = new APIErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.name(),
-                List.of(ex.getMessage()),
-                Instant.now()
-        );
+        APIErrorResponse error = buildError(HttpStatus.NOT_FOUND, List.of(ex.getMessage()));
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    private APIErrorResponse buildError(HttpStatus status, List<String> errors) {
+        return new APIErrorResponse(
+                status.value(),
+                status.name(),
+                errors,
+                Instant.now()
+        );
     }
 }
