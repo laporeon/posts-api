@@ -14,10 +14,10 @@ import java.util.List;
 public class PostPageMapper {
     private final PostMapper postMapper;
 
-    public PageablePostResponseDTO<PostResponseDTO> toDto(Page<Post> pagePosts) {
+    public PageablePostResponseDTO<PostResponseDTO> toDTO(Page<Post> pagePosts) {
         List<PostResponseDTO> content = pagePosts.getContent()
                                                  .stream()
-                                                 .map(postMapper::toDto)
+                                                 .map(postMapper::toDTO)
                                                  .toList();
 
         return new PageablePostResponseDTO<>(

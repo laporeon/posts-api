@@ -18,7 +18,7 @@ public class PostService {
     private final PostMapper postMapper;
 
     public Post create(PostRequestDTO postRequestDTO) {
-        Post post = postMapper.fromDto(postRequestDTO);
+        Post post = postMapper.toEntity(postRequestDTO);
         return postRepository.save(post);
     }
 
@@ -32,8 +32,10 @@ public class PostService {
 
     public Post updatePost(String id, PostRequestDTO postRequestDTO) {
         Post existingPost = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(id));
-
-        postMapper.updateEntity(existingPost, postRequestDTO);
+        
+        existingPost.setTitle(postRequestDTO.title());
+        existingPost.setDescription(postRequestDTO.description());
+        existingPost.setBody(postRequestDTO.body());
 
         return postRepository.save(existingPost);
     }
