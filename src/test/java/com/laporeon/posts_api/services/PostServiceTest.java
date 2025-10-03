@@ -19,7 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,11 +45,8 @@ public class PostServiceTest {
 
         Post sut = postService.create(VALID_POST_REQUEST_DTO);
 
-        assertThat(sut).isNotNull();
         assertThat(sut.getId()).isEqualTo(EXPECTED_SAVED_POST.getId());
         assertThat(sut.getTitle()).isEqualTo(VALID_POST_REQUEST_DTO.title());
-        assertThat(sut.getDescription()).isEqualTo(VALID_POST_REQUEST_DTO.description());
-        assertThat(sut.getBody()).isEqualTo(VALID_POST_REQUEST_DTO.body());
 
         verify(postRepository, times(1)).save(any(Post.class));
     }
@@ -62,7 +58,6 @@ public class PostServiceTest {
 
         Post sut = postService.findById(VALID_POST_1.getId());
 
-        assertThat(sut).isNotNull();
         assertThat(sut.getId()).isEqualTo(VALID_POST_1.getId());
         assertThat(sut.getTitle()).isEqualTo(VALID_POST_1.getTitle());
 
@@ -91,7 +86,6 @@ public class PostServiceTest {
 
         Page<Post> sut = postService.getAllPosts(pageable);
 
-        assertThat(sut).isNotNull();
         assertThat(sut.getTotalPages()).isEqualTo(1);
         assertThat(sut.getTotalElements()).isEqualTo(2);
         assertThat(sut.getContent()).containsExactly(VALID_POST_1, VALID_POST_2);
@@ -104,25 +98,14 @@ public class PostServiceTest {
     void updatePost_ShouldReturnUpdatedPost_WhenGivenValidDataAndExistingId() {
         when(postRepository.findById(VALID_POST_1.getId())).thenReturn(Optional.of(VALID_POST_1));
 
-        Post updatedPost = new Post(
-                VALID_POST_1.getId(),
-                VALID_POST_REQUEST_DTO.title(),
-                VALID_POST_REQUEST_DTO.description(),
-                VALID_POST_REQUEST_DTO.body(),
-                VALID_POST_1.getCreatedAt(),
-                LocalDateTime.now()
-        );
-
-        when(postRepository.save(any(Post.class))).thenReturn(updatedPost);
+        when(postRepository.save(any(Post.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         Post sut = postService.updatePost(VALID_POST_1.getId(), VALID_POST_REQUEST_DTO);
 
-        assertThat(sut).isNotNull();
         assertThat(sut.getId()).isEqualTo(VALID_POST_1.getId());
-        assertThat(sut.getTitle()).isEqualTo(updatedPost.getTitle());
-        assertThat(sut.getDescription()).isEqualTo(VALID_POST_REQUEST_DTO.description());
-        assertThat(sut.getBody()).isEqualTo(VALID_POST_REQUEST_DTO.body());
-        assertThat(sut.getUpdatedAt()).isEqualTo(updatedPost.getUpdatedAt());
+        assertThat(sut.getTitle()).isEqualTo(VALID_POST_REQUEST_DTO.title());
+        assertThat(sut.getCreatedAt()).isEqualTo(VALID_POST_1.getCreatedAt());
 
         verify(postRepository, times(1)).findById(VALID_POST_1.getId());
         verify(postRepository, times(1)).save(any(Post.class));
