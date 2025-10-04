@@ -5,7 +5,7 @@ import com.laporeon.posts_api.exceptions.PostNotFoundException;
 import com.laporeon.posts_api.mappers.PostMapper;
 import com.laporeon.posts_api.repositories.PostRepository;
 
-import static com.laporeon.posts_api.commom.PostConstants.*;
+import static com.laporeon.posts_api.commom.Constants.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
