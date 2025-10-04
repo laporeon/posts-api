@@ -2,20 +2,20 @@ package com.laporeon.posts_api.commom;
 
 import com.laporeon.posts_api.dto.request.PostRequestDTO;
 import com.laporeon.posts_api.entities.Post;
-import com.laporeon.posts_api.mappers.PostMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostConstants {
+public class Constants {
 
 
     public static final String INVALID_POST_ID = "68e0124a70424186e056e45d";
 
-    public static final PostRequestDTO VALID_POST_REQUEST_DTO = new PostRequestDTO("Getting Started with Spring " +
-            "Boot", "A comprehensive guide to building REST APIs with Spring Boot framework.", "Spring Boot makes it "
-            + "easy to create stand-alone, production-grade Spring based Applications.");
+    public static final PostRequestDTO VALID_POST_REQUEST_DTO = new PostRequestDTO("" +
+            "Getting Started with Spring Boot",
+            "A comprehensive guide to building REST APIs with Spring Boot framework.",
+            "Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications.");
 
     public static final PostRequestDTO INVALID_POST_REQUEST_DTO = new PostRequestDTO("", "", "");
 
