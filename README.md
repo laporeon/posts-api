@@ -49,11 +49,12 @@ This is my solution for the [TradeMap Code backend challenge](https://github.com
 
 Environment configuration is optional. The application will run with default values. To customize these settings with your own configurations, rename the `.env.example` to `.env` and modify the variables according to your needs.
 
-| key            | description                         | default    |
-| -------------- | ----------------------------------- |------------|
-| MONGO_USER     | MongoDB username                    | trademap   |
-| MONGO_PASSWORD | MongoDB password                    | dbpassword |
-| MONGO_DB       | MongoDB database name               | posts      |
+| key            | description           | default                                                                |
+|----------------|-----------------------|------------------------------------------------------------------------|
+| MONGO_USER     | MongoDB username      | trademap                                                               |
+| MONGO_PASSWORD | MongoDB password      | dbpassword                                                             |
+| MONGO_DB       | MongoDB database name | posts                                                                  |
+| MONGO_HOST     | MongoDB host          | localhost (or `mongodb` if running with Docker) |
 
 ### Docker
 
