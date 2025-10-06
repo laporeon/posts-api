@@ -34,9 +34,10 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
-    private final PostPageMapper pageMapper;
-    private final PostMapper postMapper;
 
+    private final PostPageMapper pageMapper;
+
+    private final PostMapper postMapper;
 
     @Operation(summary = "Retrieve existing posts.")
     @ApiResponse(
@@ -61,7 +62,6 @@ public class PostController {
         PageablePostResponseDTO<PostResponseDTO> response = pageMapper.toDTO(posts);
         return ResponseEntity.ok().body(response);
     }
-
 
     @Operation(summary = "Retrieve an existing post.")
     @ApiResponse(
