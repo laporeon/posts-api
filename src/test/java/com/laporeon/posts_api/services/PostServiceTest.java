@@ -41,12 +41,12 @@ public class PostServiceTest {
     @Test
     @DisplayName("Should return saved post when given valid data")
     void create_ShouldReturnSavedPost_WhenGivenValidData() {
-        when(postRepository.save(any(Post.class))).thenReturn(EXPECTED_SAVED_POST);
+        when(postRepository.save(any(Post.class))).thenReturn(SAVED_POST_ENTITY);
 
         Post sut = postService.create(VALID_POST_REQUEST_DTO);
 
-        assertThat(sut.getId()).isEqualTo(EXPECTED_SAVED_POST.getId());
-        assertThat(sut.getTitle()).isEqualTo(VALID_POST_REQUEST_DTO.title());
+        assertThat(sut.getId()).isEqualTo(SAVED_POST_ENTITY.getId());
+        assertThat(sut.getTitle()).isEqualTo(SAVED_POST_ENTITY.getTitle());
 
         verify(postRepository, times(1)).save(any(Post.class));
     }
@@ -54,14 +54,14 @@ public class PostServiceTest {
     @Test
     @DisplayName("Should return post when given existing id")
     void findById_ShouldReturnPost_WhenGivenExistingId() {
-        when(postRepository.findById(VALID_POST_1.getId())).thenReturn(Optional.of(VALID_POST_1));
+        when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
 
-        Post sut = postService.findById(VALID_POST_1.getId());
+        Post sut = postService.findById(VALID_POST_ENTITY.getId());
 
-        assertThat(sut.getId()).isEqualTo(VALID_POST_1.getId());
-        assertThat(sut.getTitle()).isEqualTo(VALID_POST_1.getTitle());
+        assertThat(sut.getId()).isEqualTo(VALID_POST_ENTITY.getId());
+        assertThat(sut.getTitle()).isEqualTo(VALID_POST_ENTITY.getTitle());
 
-        verify(postRepository, times(1)).findById(VALID_POST_1.getId());
+        verify(postRepository, times(1)).findById(VALID_POST_ENTITY.getId());
     }
 
     @Test
@@ -80,15 +80,15 @@ public class PostServiceTest {
     @DisplayName("Should return page of posts when given valid pageable")
     void getAllPosts_ShouldReturnPageOfPosts_WhenGivenValidPageable() {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Post> expectedPage = new PageImpl<>(posts);
+        Page<Post> expectedPage = new PageImpl<>(POSTS_ENTITY_LIST);
 
         when(postRepository.findAll(pageable)).thenReturn(expectedPage);
 
         Page<Post> sut = postService.getAllPosts(pageable);
 
-        assertThat(sut.getTotalPages()).isEqualTo(1);
-        assertThat(sut.getTotalElements()).isEqualTo(2);
-        assertThat(sut.getContent()).containsExactly(VALID_POST_1, VALID_POST_2);
+        assertThat(sut.getTotalPages()).isEqualTo(expectedPage.getTotalPages());
+        assertThat(sut.getTotalElements()).isEqualTo(expectedPage.getTotalElements());
+        assertThat(sut.getContent()).containsExactly(VALID_POST_ENTITY);
 
         verify(postRepository, times(1)).findAll(pageable);
     }
@@ -96,18 +96,18 @@ public class PostServiceTest {
     @Test
     @DisplayName("Should return updated post when given valid data and existing id")
     void updatePost_ShouldReturnUpdatedPost_WhenGivenValidDataAndExistingId() {
-        when(postRepository.findById(VALID_POST_1.getId())).thenReturn(Optional.of(VALID_POST_1));
+        when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
 
         when(postRepository.save(any(Post.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Post sut = postService.updatePost(VALID_POST_1.getId(), VALID_POST_REQUEST_DTO);
+        Post sut = postService.updatePost(VALID_POST_ENTITY.getId(), VALID_POST_REQUEST_DTO);
 
-        assertThat(sut.getId()).isEqualTo(VALID_POST_1.getId());
+        assertThat(sut.getId()).isEqualTo(VALID_POST_ENTITY.getId());
         assertThat(sut.getTitle()).isEqualTo(VALID_POST_REQUEST_DTO.title());
-        assertThat(sut.getCreatedAt()).isEqualTo(VALID_POST_1.getCreatedAt());
+        assertThat(sut.getCreatedAt()).isEqualTo(VALID_POST_ENTITY.getCreatedAt());
 
-        verify(postRepository, times(1)).findById(VALID_POST_1.getId());
+        verify(postRepository, times(1)).findById(VALID_POST_ENTITY.getId());
         verify(postRepository, times(1)).save(any(Post.class));
     }
 
@@ -126,14 +126,14 @@ public class PostServiceTest {
     @Test
     @DisplayName("Should delete post when given existing id")
     void deletePost_ShouldDeletePost_WhenGivenExistingId() {
-        when(postRepository.findById(VALID_POST_1.getId())).thenReturn(Optional.of(VALID_POST_1));
+        when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
 
-        doNothing().when(postRepository).deleteById(VALID_POST_1.getId());
+        doNothing().when(postRepository).deleteById(VALID_POST_ENTITY.getId());
 
-        postService.deletePost(VALID_POST_1.getId());
+        postService.deletePost(VALID_POST_ENTITY.getId());
 
-        verify(postRepository, times(1)).findById(VALID_POST_1.getId());
-        verify(postRepository, times(1)).deleteById(VALID_POST_1.getId());
+        verify(postRepository, times(1)).findById(VALID_POST_ENTITY.getId());
+        verify(postRepository, times(1)).deleteById(VALID_POST_ENTITY.getId());
     }
 
     @Test
