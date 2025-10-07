@@ -11,7 +11,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class PostPaginationMapper {
+public class PageMapper {
     private final PostMapper postMapper;
 
     public PageResponseDTO<PostResponseDTO> toDTO(Page<Post> posts) {
