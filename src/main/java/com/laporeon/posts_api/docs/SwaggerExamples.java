@@ -65,8 +65,8 @@ public class SwaggerExamples {
         public static final String VALIDATION_ERROR_MESSAGE = """
         {
             "status": 400,
-            "name": "BAD_REQUEST",
-            "errors": [
+            "error": "BAD_REQUEST",
+            "messages": [
                 "Title must be between 3 and 100 characters long.",
                 "Description is required."
             ],
@@ -77,8 +77,8 @@ public class SwaggerExamples {
         public static final String NOT_FOUND_ERROR_MESSAGE = """
         {
             "status": 404,
-            "name": "NOT_FOUND",
-            "errors": [
+            "error": "NOT_FOUND",
+            "messages": [
                 "Post with id 68b88e452c073f3290787d65 not found"
             ],
             "timestamp": "2025-09-04T18:19:52.121160501Z"
