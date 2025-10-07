@@ -1,7 +1,7 @@
 package com.laporeon.posts_api.commom;
 
 import com.laporeon.posts_api.dto.request.PostRequestDTO;
-import com.laporeon.posts_api.dto.response.PageablePostResponseDTO;
+import com.laporeon.posts_api.dto.response.PageResponseDTO;
 import com.laporeon.posts_api.dto.response.PostResponseDTO;
 import com.laporeon.posts_api.entities.Post;
 
@@ -55,7 +55,7 @@ public class Constants {
                                                                                  post.getUpdatedAt()))
                                                                          .toList();
 
-    public static final PageablePostResponseDTO<PostResponseDTO> POSTS_RESPONSE_PAGE = new PageablePostResponseDTO<>(
+    public static final PageResponseDTO<PostResponseDTO> POSTS_RESPONSE_PAGE = new PageResponseDTO<>(
             POSTS_RESPONSE_CONTENT,
             0,
             POSTS_RESPONSE_CONTENT.size(),
