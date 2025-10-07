@@ -1,7 +1,7 @@
-package com.laporeon.posts_api.exceptions;
+package com.laporeon.posts_api.dto.response;
 
 import java.time.Instant;
 import java.util.List;
 
-public record APIErrorResponse(int status, String name, List<String> errors, Instant timestamp) {
+public record ErrorResponseDTO(int status, String error, List<String> messages, Instant timestamp) {
 }
