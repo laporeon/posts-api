@@ -33,7 +33,7 @@ public class SwaggerExamples {
                 "updatedAt": "2025-01-15T10:35:00Z"
                 },
                 {
-                "id": "507f1f77bcf86cd799439012", 
+                "id": "507f1f77bcf86cd799439012",
                 "title": "MongoDB with Spring Data",
                 "description": "Learn how to integrate MongoDB with Spring Data for seamless database operations.",
                 "body": "MongoDB is a popular NoSQL database that works perfectly with Spring Boot applications. In this tutorial, we'll set up MongoDB integration using Spring Data MongoDB...",
