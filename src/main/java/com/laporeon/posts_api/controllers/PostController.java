@@ -2,14 +2,11 @@ package com.laporeon.posts_api.controllers;
 
 import com.laporeon.posts_api.docs.PostRequestDTOExample;
 import com.laporeon.posts_api.docs.SwaggerExamples;
-import com.laporeon.posts_api.dto.response.PageablePostResponseDTO;
+import com.laporeon.posts_api.dto.response.PageResponseDTO;
 import com.laporeon.posts_api.dto.request.PostRequestDTO;
 import com.laporeon.posts_api.dto.response.PostResponseDTO;
-import com.laporeon.posts_api.entities.Post;
-import com.laporeon.posts_api.exceptions.APIErrorResponse;
-import com.laporeon.posts_api.mappers.PostMapper;
+import com.laporeon.posts_api.dto.response.ErrorResponseDTO;
 import com.laporeon.posts_api.services.PostService;
-import com.laporeon.posts_api.mappers.PostPageMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -18,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -35,9 +31,29 @@ public class PostController {
 
     private final PostService postService;
 
-    private final PostPageMapper pageMapper;
-
-    private final PostMapper postMapper;
+    @PostRequestDTOExample
+    @Operation(summary = "Create a new post.")
+    @ApiResponse(
+            responseCode = "201",
+            description = "Post successfully created.",
+            content =
+            @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = PostResponseDTO.class),
+                    examples = @ExampleObject(value = SwaggerExamples.SINGLE_POST_RESPONSE_EXAMPLE)))
+    @ApiResponse(
+            responseCode = "400",
+            description = "Validation failed",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                    examples = @ExampleObject(
+                            value = SwaggerExamples.VALIDATION_ERROR_MESSAGE)))
+    @PostMapping
+    public ResponseEntity<PostResponseDTO> createPost(@Valid @RequestBody PostRequestDTO dto) {
+        PostResponseDTO postResponseDTO = postService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postResponseDTO);
+    }
 
     @Operation(summary = "Retrieve existing posts.")
     @ApiResponse(
@@ -46,10 +62,10 @@ public class PostController {
             content =
             @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = PageablePostResponseDTO.class),
+                    schema = @Schema(implementation = PageResponseDTO.class),
                     examples = @ExampleObject(value = SwaggerExamples.POSTS_LIST_RESPONSE_EXAMPLE)))
     @GetMapping
-    public ResponseEntity<PageablePostResponseDTO> getAllPosts(
+    public ResponseEntity<PageResponseDTO> listPosts(
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @RequestParam(value = "size", required = false, defaultValue = "10") int size,
             @RequestParam(value = "orderBy", required = false, defaultValue = "title") String orderBy,
@@ -58,9 +74,8 @@ public class PostController {
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.valueOf(direction.toUpperCase()), orderBy));
 
-        Page<Post> posts = postService.getAllPosts(pageable);
-        PageablePostResponseDTO<PostResponseDTO> response = pageMapper.toDTO(posts);
-        return ResponseEntity.ok().body(response);
+        PageResponseDTO<PostResponseDTO> posts = postService.listPosts(pageable);
+        return ResponseEntity.ok().body(posts);
     }
 
     @Operation(summary = "Retrieve an existing post.")
@@ -78,38 +93,12 @@ public class PostController {
             content =
             @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = APIErrorResponse.class),
+                    schema = @Schema(implementation = ErrorResponseDTO.class),
                     examples = @ExampleObject(value = SwaggerExamples.NOT_FOUND_ERROR_MESSAGE)))
     @GetMapping("/{id}")
     public ResponseEntity<PostResponseDTO> findPostById(@PathVariable("id") String id) {
-        Post post = postService.findById(id);
-        PostResponseDTO postResponseDTO = postMapper.toDTO(post);
+        PostResponseDTO postResponseDTO = postService.findById(id);
         return ResponseEntity.ok().body(postResponseDTO);
-    }
-
-    @PostRequestDTOExample
-    @Operation(summary = "Create a new post.")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Post successfully created.",
-            content =
-            @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = PostResponseDTO.class),
-                    examples = @ExampleObject(value = SwaggerExamples.SINGLE_POST_RESPONSE_EXAMPLE)))
-    @ApiResponse(
-            responseCode = "400",
-            description = "Validation failed",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = APIErrorResponse.class),
-                    examples = @ExampleObject(
-                            value = SwaggerExamples.VALIDATION_ERROR_MESSAGE)))
-    @PostMapping
-    public ResponseEntity<PostResponseDTO> createPost(@Valid @RequestBody PostRequestDTO postRequestDTO) {
-        Post post = postService.create(postRequestDTO);
-        PostResponseDTO postResponseDTO = postMapper.toDTO(post);
-        return ResponseEntity.status(HttpStatus.CREATED).body(postResponseDTO);
     }
 
     @PostRequestDTOExample
@@ -123,17 +112,24 @@ public class PostController {
                     schema = @Schema(implementation = PostResponseDTO.class),
                     examples = @ExampleObject(value = SwaggerExamples.SINGLE_POST_RESPONSE_EXAMPLE)))
     @ApiResponse(
+            responseCode = "400",
+            description = "Validation failed",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                    examples = @ExampleObject(
+                            value = SwaggerExamples.VALIDATION_ERROR_MESSAGE)))
+    @ApiResponse(
             responseCode = "404",
             description = "Post not found.",
             content =
             @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = APIErrorResponse.class),
+                    schema = @Schema(implementation = ErrorResponseDTO.class),
                     examples = @ExampleObject(value = SwaggerExamples.NOT_FOUND_ERROR_MESSAGE)))
     @PutMapping("/{id}")
     public ResponseEntity<PostResponseDTO> updatePost(@PathVariable("id") String id, @Valid @RequestBody PostRequestDTO postRequestDTO) {
-        Post post = postService.updatePost(id, postRequestDTO);
-        PostResponseDTO postResponseDTO = postMapper.toDTO(post);
+        PostResponseDTO postResponseDTO = postService.update(id, postRequestDTO);
         return ResponseEntity.ok().body(postResponseDTO);
     }
 
@@ -147,11 +143,11 @@ public class PostController {
             content =
             @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = APIErrorResponse.class),
+                    schema = @Schema(implementation = ErrorResponseDTO.class),
                     examples = @ExampleObject(value = SwaggerExamples.NOT_FOUND_ERROR_MESSAGE)))
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable("id") String id) {
-        postService.deletePost(id);
+        postService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
