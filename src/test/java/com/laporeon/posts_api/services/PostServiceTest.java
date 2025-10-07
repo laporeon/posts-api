@@ -95,9 +95,7 @@ public class PostServiceTest {
     void findById_ShouldThrowPostNotFoundException_WhenIdDoesNotExist() {
         when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
 
-        assertThrows(PostNotFoundException.class, () -> {
-            postService.findById(INVALID_POST_ID);
-        });
+        assertThrows(PostNotFoundException.class, () -> postService.findById(INVALID_POST_ID));
 
         verify(postRepository, times(1)).findById(INVALID_POST_ID);
     }
@@ -128,9 +126,7 @@ public class PostServiceTest {
     void update_ShouldThrowPostNotFoundException_WhenUpdatingNonExistentPost() {
         when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
 
-        assertThrows(PostNotFoundException.class, () -> {
-            postService.update(INVALID_POST_ID, VALID_POST_REQUEST_DTO);
-        });
+        assertThrows(PostNotFoundException.class, () -> postService.update(INVALID_POST_ID, VALID_POST_REQUEST_DTO));
 
         verify(postRepository, times(1)).findById(INVALID_POST_ID);
     }
@@ -153,9 +149,7 @@ public class PostServiceTest {
     void delete_ShouldThrowPostNotFoundException_WhenDeletingNonExistentPost() {
         when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
 
-        assertThrows(PostNotFoundException.class, () -> {
-            postService.delete(INVALID_POST_ID);
-        });
+        assertThrows(PostNotFoundException.class, () -> postService.delete(INVALID_POST_ID));
 
         verify(postRepository, times(1)).findById(INVALID_POST_ID);
         verify(postRepository, never()).deleteById(INVALID_POST_ID);
