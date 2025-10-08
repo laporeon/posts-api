@@ -53,8 +53,8 @@ public class PostServiceTest {
 
         PostResponseDTO sut = postService.create(VALID_POST_REQUEST_DTO);
 
-        assertThat(sut.id()).isEqualTo(SAVED_POST_ENTITY.getId());
-        assertThat(sut.title()).isEqualTo(SAVED_POST_ENTITY.getTitle());
+        assertThat(sut.id()).isEqualTo(SAVED_POST_RESPONSE_DTO.id());
+        assertThat(sut.title()).isEqualTo(SAVED_POST_RESPONSE_DTO.title());
 
         verify(postRepository, times(1)).save(any(Post.class));
     }
@@ -70,8 +70,8 @@ public class PostServiceTest {
 
         PageResponseDTO<PostResponseDTO> sut = postService.listPosts(pageable);
 
-        assertThat(sut.totalElements()).isEqualTo(expectedPage.getTotalElements());
-        assertThat(sut.content()).hasSize(POSTS_ENTITY_LIST.size());
+        assertThat(sut.totalElements()).isEqualTo(POSTS_RESPONSE_PAGE.totalElements());
+        assertThat(sut.content()).hasSize(POSTS_RESPONSE_PAGE.content().size());
 
         verify(postRepository).findAll(pageable);
     }
@@ -84,8 +84,8 @@ public class PostServiceTest {
 
         PostResponseDTO sut = postService.findById(VALID_POST_ENTITY.getId());
 
-        assertThat(sut.id()).isEqualTo(VALID_POST_ENTITY.getId());
-        assertThat(sut.title()).isEqualTo(VALID_POST_ENTITY.getTitle());
+        assertThat(sut.id()).isEqualTo(SAVED_POST_RESPONSE_DTO.id());
+        assertThat(sut.title()).isEqualTo(SAVED_POST_RESPONSE_DTO.title());
 
         verify(postRepository, times(1)).findById(VALID_POST_ENTITY.getId());
     }
