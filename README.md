@@ -54,7 +54,6 @@ Environment configuration is optional. The application will run with default val
 | MONGO_USER     | MongoDB username      | trademap                                                               |
 | MONGO_PASSWORD | MongoDB password      | dbpassword                                                             |
 | MONGO_DB       | MongoDB database name | posts                                                                  |
-| MONGO_HOST     | MongoDB host          | localhost (or `mongodb` if running with Docker) |
 
 ### Docker
 
