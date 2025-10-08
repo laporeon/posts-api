@@ -63,7 +63,7 @@ class PostControllerTest {
 
     @Test
     @DisplayName("Should return OK status and page of posts with full pagination info")
-    void getAllPosts_ShouldReturnOKStatusAndPageOfPosts() throws Exception {
+    void listPosts_ShouldReturnOKStatusAndPageOfPosts() throws Exception {
         when(postService.listPosts(any(Pageable.class))).thenReturn(POSTS_RESPONSE_PAGE);
 
         mockMvc.perform(get("/posts")
@@ -72,7 +72,7 @@ class PostControllerTest {
                        .contentType(MediaType.APPLICATION_JSON))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.content").isArray())
-               .andExpect(jsonPath("$.totalElements").value(POSTS_ENTITY_LIST.size()))
+               .andExpect(jsonPath("$.totalElements").value(POSTS_RESPONSE_PAGE.totalElements()))
                .andExpect(jsonPath("$.pageNumber").value(0))
                .andExpect(jsonPath("$.pageSize").value(POSTS_RESPONSE_PAGE.pageSize()))
                .andExpect(jsonPath("$.totalPages").value(POSTS_RESPONSE_PAGE.totalPages()))
@@ -87,8 +87,8 @@ class PostControllerTest {
         mockMvc.perform(get("/posts/{id}",VALID_POST_ENTITY.getId())
                        .contentType(MediaType.APPLICATION_JSON))
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$.id").value(SAVED_POST_ENTITY.getId()))
-               .andExpect(jsonPath("$.title").value(SAVED_POST_ENTITY.getTitle()));
+               .andExpect(jsonPath("$.id").value(SAVED_POST_RESPONSE_DTO.id()))
+               .andExpect(jsonPath("$.title").value(SAVED_POST_RESPONSE_DTO.title()));
     }
 
     @Test
