@@ -34,8 +34,8 @@ class PostControllerTest {
     private PostService postService;
 
     @Test
-    @DisplayName("Should return created status and saved post when given valid data")
-    void createPost_ShouldReturnCreatedStatusAndSavedPost_WhenGivenValidData() throws Exception {
+    @DisplayName("Should return 201 and saved post when given valid request data")
+    void create_WithValidRequestData_ReturnsCreatedAndPost() throws Exception {
         when(postService.create(any(PostRequestDTO.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
 
         mockMvc.perform(post("/posts")
@@ -48,8 +48,8 @@ class PostControllerTest {
 
 
     @Test
-    @DisplayName("Should return validation errors when giving missing required fields")
-    void createPost_ShouldReturnValidationErrors_WhenGivingMissingRequiredFields() throws Exception {
+    @DisplayName("Should return 400 when required fields are missing or invalid")
+    void create_WithMissingOrInvalidFields_ReturnsBadRequest() throws Exception {
         mockMvc.perform(post("/posts")
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(INVALID_POST_REQUEST_DTO)))
@@ -62,8 +62,8 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("Should return OK status and page of posts with full pagination info")
-    void listPosts_ShouldReturnOKStatusAndPageOfPosts() throws Exception {
+    @DisplayName("Should return 200 and paginated posts")
+    void listPosts_ReturnsOkAndPagedPosts() throws Exception {
         when(postService.listPosts(any(Pageable.class))).thenReturn(POSTS_RESPONSE_PAGE);
 
         mockMvc.perform(get("/posts")
@@ -72,6 +72,7 @@ class PostControllerTest {
                        .contentType(MediaType.APPLICATION_JSON))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.content").isArray())
+               .andExpect(jsonPath("$.content").isNotEmpty())
                .andExpect(jsonPath("$.totalElements").value(POSTS_RESPONSE_PAGE.totalElements()))
                .andExpect(jsonPath("$.pageNumber").value(0))
                .andExpect(jsonPath("$.pageSize").value(POSTS_RESPONSE_PAGE.pageSize()))
@@ -80,8 +81,8 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("Should return OK status and existing Post")
-    void findPostById_ShouldReturnOKStatusAndExistingPost() throws Exception {
+    @DisplayName("Should return 200 and post when id exists")
+    void findPostById_WithExistingId_ReturnsOkAndPost() throws Exception {
         when(postService.findById(VALID_POST_ENTITY.getId())).thenReturn(SAVED_POST_RESPONSE_DTO);
 
         mockMvc.perform(get("/posts/{id}",VALID_POST_ENTITY.getId())
@@ -92,19 +93,18 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("Should return NOT FOUND status when given non existing id")
-    void findPostById_ShouldReturnNotFoundStatus_WhenGiveNonExistingId() throws Exception {
+    @DisplayName("Should return 404 when finding post with non existing id")
+    void findPostById_WithNonExistingId_ReturnsNotFound() throws Exception {
         when(postService.findById(INVALID_POST_ID)).thenThrow(new PostNotFoundException(INVALID_POST_ID));
 
-        mockMvc.perform(get("/posts/{id}", INVALID_POST_ID)
-                       .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/posts/{id}", INVALID_POST_ID))
                .andExpect(status().isNotFound())
                .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
     }
 
     @Test
-    @DisplayName("Should return OK status when updating existing post with valid data")
-    void updatePost_ShouldReturnOkStatus_WhenUpdatingExistingPost_GivenValidData() throws Exception {
+    @DisplayName("Should return 200 when updating post with existing id and valid request data")
+    void update_WithExistingIdAndValidRequestData_ReturnsOkAndPost() throws Exception {
         when(postService.update(eq(VALID_POST_ENTITY.getId()), any(PostRequestDTO.class)))
                 .thenReturn(SAVED_POST_RESPONSE_DTO);
 
@@ -116,8 +116,8 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("Should return not found status when updating non existing post")
-    void updatePost_ShouldReturnNotFoundStatus_WhenUpdatingNonExistingPost() throws Exception {
+    @DisplayName("Should return 404 when updating post with non existing id")
+    void update_WithNonExistingId_ReturnsNotFound() throws Exception {
         doThrow(new PostNotFoundException(INVALID_POST_ID))
                 .when(postService)
                 .update(INVALID_POST_ID, VALID_POST_REQUEST_DTO);
@@ -130,24 +130,22 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("Should return no content status when deleting existing post")
-    void deletePost_ShouldReturnNoContentStatus_WhenDeletingExistingPost() throws Exception {
+    @DisplayName("Should return 204 when deleting post with existing id")
+    void delete_WithExistingId_ReturnsNoContent() throws Exception {
         doNothing().when(postService).delete(VALID_POST_ENTITY.getId());
 
-        mockMvc.perform(delete("/posts/{id}", VALID_POST_ENTITY.getId())
-                       .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/posts/{id}", VALID_POST_ENTITY.getId()))
                .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("Should return not found status when deleting non existing post")
-    void deletePost_ShouldReturnNotFoundStatus_WhenDeletingNonExistingPost() throws Exception {
+    @DisplayName("Should return 404 when deleting post with non existing id")
+    void delete_WithNonExistingId_ReturnsNotFound() throws Exception {
         doThrow(new PostNotFoundException(INVALID_POST_ID))
                 .when(postService)
                 .delete(INVALID_POST_ID);
 
-        mockMvc.perform(delete("/posts/{id}", INVALID_POST_ID)
-                       .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete("/posts/{id}", INVALID_POST_ID))
                .andExpect(status().isNotFound())
                .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
     }
