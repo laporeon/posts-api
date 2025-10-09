@@ -33,7 +33,7 @@ public class SwaggerExamples {
                 "updatedAt": "2025-01-15T10:35:00Z"
                 },
                 {
-                "id": "507f1f77bcf86cd799439012", 
+                "id": "507f1f77bcf86cd799439012",
                 "title": "MongoDB with Spring Data",
                 "description": "Learn how to integrate MongoDB with Spring Data for seamless database operations.",
                 "body": "MongoDB is a popular NoSQL database that works perfectly with Spring Boot applications. In this tutorial, we'll set up MongoDB integration using Spring Data MongoDB...",
@@ -65,8 +65,8 @@ public class SwaggerExamples {
         public static final String VALIDATION_ERROR_MESSAGE = """
         {
             "status": 400,
-            "name": "BAD_REQUEST",
-            "errors": [
+            "error": "BAD_REQUEST",
+            "messages": [
                 "Title must be between 3 and 100 characters long.",
                 "Description is required."
             ],
@@ -77,8 +77,8 @@ public class SwaggerExamples {
         public static final String NOT_FOUND_ERROR_MESSAGE = """
         {
             "status": 404,
-            "name": "NOT_FOUND",
-            "errors": [
+            "error": "NOT_FOUND",
+            "messages": [
                 "Post with id 68b88e452c073f3290787d65 not found"
             ],
             "timestamp": "2025-09-04T18:19:52.121160501Z"

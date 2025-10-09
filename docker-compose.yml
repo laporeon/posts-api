@@ -4,7 +4,7 @@ services:
   mongodb:
     container_name: mongodb
     image: mongo:latest
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
@@ -13,7 +13,7 @@ services:
     volumes:
       - mongodb_data:/data/db
     networks:
-      - posts-api
+      - app-network
 
   app:
     build: .
@@ -29,12 +29,12 @@ services:
     depends_on:
       - mongodb
     networks:
-      - posts-api
+      - app-network
 
 volumes:
   mongodb_data:
     driver: local
 
 networks:
-  posts-api:
+  app-network:
     driver: bridge

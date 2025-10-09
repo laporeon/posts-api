@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostMapper {
 
-    public PostResponseDTO toDto(Post post) {
+    public PostResponseDTO toDTO(Post post) {
         return new PostResponseDTO(
                 post.getId(),
                 post.getTitle(),
@@ -19,7 +19,7 @@ public class PostMapper {
         );
     }
 
-    public Post fromDto(PostRequestDTO dto) {
+    public Post toEntity(PostRequestDTO dto) {
         Post post = new Post();
         post.setTitle(dto.title());
         post.setDescription(dto.description());
@@ -27,9 +27,10 @@ public class PostMapper {
         return post;
     }
 
-    public void updateEntity(Post post, PostRequestDTO dto) {
+    public Post updateEntityFromDTO(PostRequestDTO dto, Post post) {
         post.setTitle(dto.title());
         post.setDescription(dto.description());
         post.setBody(dto.body());
+        return post;
     }
 }

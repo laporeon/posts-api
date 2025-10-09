@@ -1,8 +1,9 @@
 <h1 align="center"> Posts API
 
 ![java](https://img.shields.io/static/v1?label=java&message=21.0.8&color=2d3748&logo=openjdk&style=flat-square)
-![spring boot](https://img.shields.io/static/v1?label=Spring%20Boot&message=3.5.4&color=2d3748&logo=springboot&style=flat-square)
+![spring boot](https://img.shields.io/static/v1?label=spring%20boot&message=3.5.4&color=2d3748&logo=springboot&style=flat-square)
 ![mongodb](https://img.shields.io/badge/mongodb-latest-4b32c3?style=flat-square&logo=mongodb)
+![docker](https://img.shields.io/static/v1?label=docker&message=28.5.0&color=2d3748&logo=docker&style=flat-square)
 
 </h1>
 
@@ -36,10 +37,11 @@ This is my solution for the [TradeMap Code backend challenge](https://github.com
 - [Docker](https://www.docker.com/)
 
 ### For Local Development (optional)
-- Java 21+ (for local development)
-- Maven 3.9+ (for local development)
-
-**Note**: If you're only using Docker, you don't need Java or Maven installed locally - everything runs inside containers.
+- Java 21+ 
+- Maven 3.9+ 
+- MongoDB
+  
+**Note**: If you're using Docker, you don't need Java, Maven, or MongoDB installed locally — everything runs inside containers.
 
 ## **Configuring**
 
@@ -47,11 +49,11 @@ This is my solution for the [TradeMap Code backend challenge](https://github.com
 
 Environment configuration is optional. The application will run with default values. To customize these settings with your own configurations, rename the `.env.example` to `.env` and modify the variables according to your needs.
 
-| key            | description                         | default    |
-| -------------- | ----------------------------------- |------------|
-| MONGO_USER     | MongoDB username                    | trademap   |
-| MONGO_PASSWORD | MongoDB password                    | dbpassword |
-| MONGO_DB       | MongoDB database name               | posts      |
+| key            | description           | default                                                                |
+|----------------|-----------------------|------------------------------------------------------------------------|
+| MONGO_USER     | MongoDB username      | trademap                                                               |
+| MONGO_PASSWORD | MongoDB password      | dbpassword                                                             |
+| MONGO_DB       | MongoDB database name | posts                                                                  |
 
 ### Docker
 
@@ -79,14 +81,14 @@ This means MongoDB is already running locally on your system. You'll need to:
 
 ### **Routes**
 
-| Route               | HTTP Method | Params                                                                                                                                                                                                     | Description                             | Auth Method |
-|---------------------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|-------------|
-| `/api/v1/docs`      | GET         | -                                                                                                                                                                                                          | Swagger documentation                   | None        |
-| `/api/v1/posts`     | POST        | Body with `title`, `description` and `body`.                                                                                                                                                               | Create a new post                       | None        |
-| `/api/v1/posts`     | GET         | **Query Parameters:**<br>• `page` - Page number (default: 0)<br>• `size` - Page size (default: 5)<br>• `orderBy` - Sort field (default: "title")<br>• `direction` - Sort direction: ASC/DESC (default: "ASC") | Retrieve paginated posts with sorting   | None        |
-| `/api/v1/posts/:id` | GET         | `:id`                                                                                                                                                                                                      | Retrieve existing post by its unique id. | None        |
-| `/api/v1/posts/:id` | PUT         | `:id` + Body with Body with `title`, `description` and `body`.                                                                                                                                             | Update post information                 | None        |
-| `/api/v1/posts/:id` | DELETE      | `:id`                                                                                                                                                                                                      | Delete an existing post.                | None        |
+| Route               | HTTP Method | Params                                                                                                                                                                                                         | Description                             | Auth Method |
+|---------------------|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|-------------|
+| `/api/v1/docs`      | GET         | -                                                                                                                                                                                                              | Swagger documentation                   | None        |
+| `/api/v1/posts`     | POST        | Body with `title`, `description` and `body`.                                                                                                                                                                   | Create a new post                       | None        |
+| `/api/v1/posts`     | GET         | **Query Parameters:**<br>• `page` - Page number (default: 0)<br>• `size` - Page size (default: 10)<br>• `orderBy` - Sort field (default: "title")<br>• `direction` - Sort direction: ASC/DESC (default: "ASC") | Retrieve paginated posts with sorting   | None        |
+| `/api/v1/posts/:id` | GET         | `:id`                                                                                                                                                                                                          | Retrieve existing post by its unique id. | None        |
+| `/api/v1/posts/:id` | PUT         | `:id` + Body with Body with `title`, `description` and `body`.                                                                                                                                                 | Update post information                 | None        |
+| `/api/v1/posts/:id` | DELETE      | `:id`                                                                                                                                                                                                          | Delete an existing post.                | None        |
 
 #### Requests
 

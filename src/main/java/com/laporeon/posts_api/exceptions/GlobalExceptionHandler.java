@@ -1,5 +1,6 @@
 package com.laporeon.posts_api.exceptions;
 
+import com.laporeon.posts_api.dto.response.ErrorResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,34 +15,33 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<APIErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponseDTO> handleValidationException(MethodArgumentNotValidException ex) {
 
-        List<String> errors = ex.getBindingResult()
+        List<String> messages = ex.getBindingResult()
                                 .getFieldErrors()
                                 .stream()
                                 .map(error -> error.getDefaultMessage())
                                 .collect(Collectors.toList());
 
-        APIErrorResponse error = new APIErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.name(),
-                errors,
-                Instant.now()
-        );
+        ErrorResponseDTO dto = buildError(HttpStatus.BAD_REQUEST, messages);
 
-        return ResponseEntity.badRequest().body(error);
+        return ResponseEntity.badRequest().body(dto);
     }
 
     @ExceptionHandler(PostNotFoundException.class)
-    public ResponseEntity<APIErrorResponse> handlePostNotFoundException(PostNotFoundException ex) {
+    public ResponseEntity<ErrorResponseDTO> handlePostNotFoundException(PostNotFoundException ex) {
 
-        APIErrorResponse error = new APIErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.name(),
-                List.of(ex.getMessage()),
-                Instant.now()
-        );
+        ErrorResponseDTO error = buildError(HttpStatus.NOT_FOUND, List.of(ex.getMessage()));
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    private ErrorResponseDTO buildError(HttpStatus status, List<String> messages) {
+        return new ErrorResponseDTO(
+                status.value(),
+                status.name(),
+                messages,
+                Instant.now()
+        );
     }
 }
