@@ -45,8 +45,8 @@ public class PostServiceTest {
     private PostService postService;
 
     @Test
-    @DisplayName("Should return saved post when given valid data")
-    void create_ShouldReturnSavedPost_WhenGivenValidData() {
+    @DisplayName("Should return saved post when given valid request data")
+    void create_WithValidRequestData_ReturnsSavedPost() {
         when(postMapper.toEntity(any(PostRequestDTO.class))).thenReturn(VALID_POST_ENTITY);
         when(postRepository.save(any(Post.class))).thenReturn(SAVED_POST_ENTITY);
         when(postMapper.toDTO(any(Post.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
@@ -61,7 +61,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("Should return page of posts when given valid pageable")
-    void listPosts_ShouldReturnPageOfPosts_WhenGivenValidPageable() {
+    void listPosts_WithValidPageable_ReturnsPageOfPosts() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Post> expectedPage = new PageImpl<>(POSTS_ENTITY_LIST, pageable, POSTS_ENTITY_LIST.size());
 
@@ -78,7 +78,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("Should return post when given existing id")
-    void findById_ShouldReturnPost_WhenGivenExistingId() {
+    void findById_WithExistingId_ReturnsPost() {
         when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
         when(postMapper.toDTO(any(Post.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
 
@@ -92,7 +92,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("Should throw PostNotFoundException when id does not exist")
-    void findById_ShouldThrowPostNotFoundException_WhenIdDoesNotExist() {
+    void findById_WithNonExistingId_ThrowsPostNotFoundException() {
         when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
 
         assertThrows(PostNotFoundException.class, () -> postService.findById(INVALID_POST_ID));
@@ -102,8 +102,8 @@ public class PostServiceTest {
 
 
     @Test
-    @DisplayName("Should return updated post when given valid data and existing id")
-    void update_ShouldReturnUpdatedPost_WhenGivenValidDataAndExistingId() {
+    @DisplayName("Should return updated post when given valid request data and existing id")
+    void update_WithValidRequestDataAndExistingId_ReturnsUpdatedPost() {
         when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
         when(postMapper.updateEntityFromDTO(any(PostRequestDTO.class), any(Post.class))).thenReturn(SAVED_POST_ENTITY);
         when(postMapper.toDTO(any(Post.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
@@ -122,8 +122,8 @@ public class PostServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw PostNotFoundException when updating non-existent post")
-    void update_ShouldThrowPostNotFoundException_WhenUpdatingNonExistentPost() {
+    @DisplayName("Should throw PostNotFoundException when updating post with non existing id")
+    void update_WithNonExistingId_ThrowsPostNotFoundException() {
         when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
 
         assertThrows(PostNotFoundException.class, () -> postService.update(INVALID_POST_ID, VALID_POST_REQUEST_DTO));
@@ -133,7 +133,7 @@ public class PostServiceTest {
 
     @Test
     @DisplayName("Should delete post when given existing id")
-    void delete_ShouldDeletePost_WhenGivenExistingId() {
+    void delete_WithExistingId_DeletesPost() {
         when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
 
         doNothing().when(postRepository).deleteById(VALID_POST_ENTITY.getId());
@@ -145,8 +145,8 @@ public class PostServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw PostNotFoundException when deleting non-existent post")
-    void delete_ShouldThrowPostNotFoundException_WhenDeletingNonExistentPost() {
+    @DisplayName("Should throw PostNotFoundException when deleting post with non existing id")
+    void delete_WithNonExistingId_ThrowsPostNotFoundException() {
         when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
 
         assertThrows(PostNotFoundException.class, () -> postService.delete(INVALID_POST_ID));
