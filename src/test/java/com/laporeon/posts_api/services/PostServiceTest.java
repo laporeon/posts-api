@@ -5,12 +5,9 @@ import com.laporeon.posts_api.dto.response.PageResponseDTO;
 import com.laporeon.posts_api.dto.response.PostResponseDTO;
 import com.laporeon.posts_api.entities.Post;
 import com.laporeon.posts_api.exceptions.PostNotFoundException;
-import com.laporeon.posts_api.mappers.PostMapper;
 import com.laporeon.posts_api.mappers.PageMapper;
+import com.laporeon.posts_api.mappers.PostMapper;
 import com.laporeon.posts_api.repositories.PostRepository;
-
-import static com.laporeon.posts_api.commom.Constants.*;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
+import static com.laporeon.posts_api.commom.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,7 +71,7 @@ public class PostServiceTest {
         assertThat(sut.totalElements()).isEqualTo(POSTS_RESPONSE_PAGE.totalElements());
         assertThat(sut.content()).hasSize(POSTS_RESPONSE_PAGE.content().size());
 
-        verify(postRepository).findAll(pageable);
+        verify(postRepository, times(1)).findAll(pageable);
     }
 
     @Test
