@@ -68,8 +68,7 @@ class PostControllerTest {
 
         mockMvc.perform(get("/posts")
                        .param("page", "0")
-                       .param("size", "10")
-                       .contentType(MediaType.APPLICATION_JSON))
+                       .param("size", "10"))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.content").isArray())
                .andExpect(jsonPath("$.content").isNotEmpty())
@@ -85,8 +84,7 @@ class PostControllerTest {
     void findPostById_WithExistingId_ReturnsOkAndPost() throws Exception {
         when(postService.findById(VALID_POST_ENTITY.getId())).thenReturn(SAVED_POST_RESPONSE_DTO);
 
-        mockMvc.perform(get("/posts/{id}",VALID_POST_ENTITY.getId())
-                       .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/posts/{id}",VALID_POST_ENTITY.getId()))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.id").value(SAVED_POST_RESPONSE_DTO.id()))
                .andExpect(jsonPath("$.title").value(SAVED_POST_RESPONSE_DTO.title()));
