@@ -11,84 +11,86 @@
 
 - [About](#about)
 - [Requirements](#requirements)
-    - [For Local Development](#for-local-development-optional)
-- [Configuring](#configuring)
-    - [.env](#env-optional)
-    - [Docker](#docker)
-- [Troubleshooting](#troubleshooting)
+- [Getting Started](#getting-started)
+    - [Configuring](#configuring)
+      - [.env](#env)
 - [Usage](#usage)
-  - [Routes](#routes)
-      - [Requests](#requests)
+    - [Starting](#starting)
+    - [Routes](#routes)
+        - [Requests](#requests)
 
 ## About
 
-This is my solution for the [TradeMap Code backend challenge](https://github.com/TradeMap-Code/desafio-backend). It's a comprehensive REST API that simulates a backend service for a personal blog platform.
+This is my solution for the [TradeMap Code backend challenge](https://github.com/TradeMap-Code/desafio-backend). It's a
+comprehensive REST API that simulates a backend service for a personal blog platform.
 
 **Key features:**
 
 - Input validation for post request payloads.
 - Full CRUD operations for posts.
 - Pagination support with flexible sorting.
-- Swagger documentation for all endpoints. 
+- Swagger documentation for all endpoints.
 - One-command deployment with Docker Compose
 
 ## Requirements:
 
-- [Docker](https://www.docker.com/)
+**For Docker (Recommended):**
 
-### For Local Development (optional)
-- Java 21+ 
-- Maven 3.9+ 
+- Docker & Docker Compose
+
+**For Local Development:**
+
+- Java 21+
+- Maven 3.9+
 - MongoDB
-  
-**Note**: If you're using Docker, you don't need Java, Maven, or MongoDB installed locally — everything runs inside containers.
 
-## **Configuring**
+## Getting Started
 
-### **.env** (optional)
+### Configuring
 
-Environment configuration is optional. The application will run with default values. To customize these settings with your own configurations, rename the `.env.example` to `.env` and modify the variables according to your needs.
+#### **.env**
 
-| key            | description           | default                                                                |
-|----------------|-----------------------|------------------------------------------------------------------------|
-| MONGO_USER     | MongoDB username      | trademap                                                               |
-| MONGO_PASSWORD | MongoDB password      | dbpassword                                                             |
-| MONGO_DB       | MongoDB database name | posts                                                                  |
+If you're using Docker, configuring `.env` file is optional. [Docker Compose file](./docker-compose.yml) includes
+fallback default values if `.env` is not present.
 
-### Docker
+For local development **without Docker**, you must set `MONGO_USER` and `MONGO_PASSWORD` environment variables to
+connect to your MongoDB instance properly. Other variables have sensible fallback defaults in the application
+configuration.
 
-For the fastest setup, it is recommended to use [Docker Compose](https://docs.docker.com/compose/):
+To customize these settings, rename `.env.example` to `.env` and modify variables according to your needs.
+
+| Variable       | For Docker | For Local Development | Default   | Description      |
+|----------------|------------|-----------------------|-----------|------------------|
+| SERVER_PORT    | Optional   | Optional              | 8080      | Server port      |
+| MONGO_USER     | Optional   | **Required**          | -         | MongoDB username |
+| MONGO_PASSWORD | Optional   | **Required**          | -         | MongoDB password |
+| MONGO_DATABASE | Optional   | Optional              | posts     | Database name    |
+| MONGO_HOST     | Optional   | Optional              | localhost | MongoDB host     |
+| MONGO_PORT     | Optional   | Optional              | 27017     | MongoDB port     |
+
+## Usage
+
+### **Starting**
+
+For the fastest setup, it is recommended to use Docker Compose to start the app and its services:
 
 ```bash
 # Run docker compose command to start all services
 $ docker compose up -d --build
 ```
 
-Once started, application will be available at `http://localhost:8080/api/v1/posts`.
-
-## Troubleshooting
-
-If you receive a port conflict error like:
-```
-Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint mongodb (...): failed to bind host port for 0.0.0.0:27017:172.21.0.2:27017/tcp: address already in use
-```
-
-This means MongoDB is already running locally on your system. You'll need to:
-- Stop the local MongoDB service: `sudo systemctl stop mongod`
-- Then retry docker compose command: `docker compose up -d --build`
-
-## Usage
+Access the application at `http://localhost:8080/api/v1/posts` (or the port you configured).
 
 ### **Routes**
 
-| Route               | HTTP Method | Params                                                                                                                                                                                                         | Description                             | Auth Method |
-|---------------------|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|-------------|
-| `/api/v1/docs`      | GET         | -                                                                                                                                                                                                              | Swagger documentation                   | None        |
-| `/api/v1/posts`     | POST        | Body with `title`, `description` and `body`.                                                                                                                                                                   | Create a new post                       | None        |
-| `/api/v1/posts`     | GET         | **Query Parameters:**<br>• `page` - Page number (default: 0)<br>• `size` - Page size (default: 10)<br>• `orderBy` - Sort field (default: "title")<br>• `direction` - Sort direction: ASC/DESC (default: "ASC") | Retrieve paginated posts with sorting   | None        |
+| Route               | HTTP Method | Params                                                                                                                                                                                                         | Description                              | Auth Method |
+|---------------------|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|-------------|
+| `/api/v1/docs`      | GET         | -                                                                                                                                                                                                              | Swagger documentation                    | None        |
+| `/api/v1/posts`     | POST        | Body with `title`, `description` and `body`.                                                                                                                                                                   | Create a new post                        | None        |
+| `/api/v1/posts`     | GET         | **Query Parameters:**<br>• `page` - Page number (default: 0)<br>• `size` - Page size (default: 10)<br>• `orderBy` - Sort field (default: "title")<br>• `direction` - Sort direction: ASC/DESC (default: "ASC") | Retrieve paginated posts with sorting    | None        |
 | `/api/v1/posts/:id` | GET         | `:id`                                                                                                                                                                                                          | Retrieve existing post by its unique id. | None        |
-| `/api/v1/posts/:id` | PUT         | `:id` + Body with Body with `title`, `description` and `body`.                                                                                                                                                 | Update post information                 | None        |
-| `/api/v1/posts/:id` | DELETE      | `:id`                                                                                                                                                                                                          | Delete an existing post.                | None        |
+| `/api/v1/posts/:id` | PUT         | `:id` + Body with `title`, `description` and `body`.                                                                                                                                                           | Update post information                  | None        |
+| `/api/v1/posts/:id` | DELETE      | `:id`                                                                                                                                                                                                          | Delete an existing post.                 | None        |
 
 #### Requests
 
