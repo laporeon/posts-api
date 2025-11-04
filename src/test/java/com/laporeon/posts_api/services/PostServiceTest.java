@@ -8,6 +8,8 @@ import com.laporeon.posts_api.exceptions.PostNotFoundException;
 import com.laporeon.posts_api.mappers.PageMapper;
 import com.laporeon.posts_api.mappers.PostMapper;
 import com.laporeon.posts_api.repositories.PostRepository;
+import org.bson.types.ObjectId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,15 +21,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
-import static com.laporeon.posts_api.commom.Constants.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("PostService Tests")
 public class PostServiceTest {
 
     @Mock
@@ -42,114 +47,213 @@ public class PostServiceTest {
     @InjectMocks
     private PostService postService;
 
+    private static final String VALID_TITLE = "Getting Started with Spring Boot";
+    private static final String VALID_DESCRIPTION = "A comprehensive guide to building REST APIs with Spring Boot framework.";
+    private static final String VALID_BODY = "Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications.";
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 10;
+
+    private Post mockedPostEntity;
+    private PostResponseDTO mockedPostResponse;
+    private Instant createdAt;
+    private Instant updatedAt;
+
+    @BeforeEach
+    void setUp() {
+        createdAt = Instant.now().minus(1, ChronoUnit.DAYS);
+        updatedAt = Instant.now();
+
+        mockedPostEntity = Post.builder()
+                               .id(new ObjectId().toString())
+                               .title(VALID_TITLE)
+                               .description(VALID_DESCRIPTION)
+                               .body(VALID_BODY)
+                               .createdAt(createdAt)
+                               .updatedAt(updatedAt)
+                               .build();
+
+        mockedPostResponse = new PostResponseDTO(
+                mockedPostEntity.getId(),
+                mockedPostEntity.getTitle(),
+                mockedPostEntity.getDescription(),
+                mockedPostEntity.getBody(),
+                mockedPostEntity.getCreatedAt(),
+                mockedPostEntity.getUpdatedAt()
+        );
+    }
+
     @Test
-    @DisplayName("Should return saved post when given valid request data")
-    void create_WithValidRequestData_ReturnsSavedPost() {
-        when(postMapper.toEntity(any(PostRequestDTO.class))).thenReturn(VALID_POST_ENTITY);
-        when(postRepository.save(any(Post.class))).thenReturn(SAVED_POST_ENTITY);
-        when(postMapper.toDTO(any(Post.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
+    @DisplayName("Should save Post successfully when given valid request data")
+    void shouldSavePostSuccessfullyWhenGivenRequestData() {
+        PostRequestDTO requestDTO = new PostRequestDTO(VALID_TITLE, VALID_DESCRIPTION, VALID_BODY);
 
-        PostResponseDTO sut = postService.create(VALID_POST_REQUEST_DTO);
+        when(postMapper.toEntity(any(PostRequestDTO.class))).thenReturn(mockedPostEntity);
+        when(postRepository.save(any(Post.class))).thenReturn(mockedPostEntity);
+        when(postMapper.toDTO(any(Post.class))).thenReturn(mockedPostResponse);
 
-        assertThat(sut.id()).isEqualTo(SAVED_POST_RESPONSE_DTO.id());
-        assertThat(sut.title()).isEqualTo(SAVED_POST_RESPONSE_DTO.title());
+        PostResponseDTO response = postService.create(requestDTO);
+
+        assertThat(response.id()).isEqualTo(mockedPostResponse.id());
+        assertThat(response.title()).isEqualTo(mockedPostResponse.title());
+        assertThat(response.createdAt()).isNotNull();
 
         verify(postRepository, times(1)).save(any(Post.class));
     }
 
     @Test
     @DisplayName("Should return page of posts when given valid pageable")
-    void listPosts_WithValidPageable_ReturnsPageOfPosts() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Post> expectedPage = new PageImpl<>(POSTS_ENTITY_LIST, pageable, POSTS_ENTITY_LIST.size());
+    void shouldReturnPostsPageWhenGivenValidPageable() {
+        Pageable pageable = PageRequest.of(DEFAULT_PAGE, DEFAULT_SIZE);
 
-        when(pageMapper.toDTO(any(Page.class))).thenReturn(POSTS_RESPONSE_PAGE);
+        List<Post> mockedPostsList = List.of(mockedPostEntity);
+        Page<Post> expectedPage = new PageImpl<>(mockedPostsList, pageable, mockedPostsList.size());
+
+        List<PostResponseDTO> mockedResponseList = List.of(mockedPostResponse);
+        PageResponseDTO<PostResponseDTO> mockedPageResponse = new PageResponseDTO<>(
+                expectedPage.getContent()
+                            .stream()
+                            .map(postMapper::toDTO)
+                            .toList(),
+                expectedPage.getNumber(),
+                expectedPage.getSize(),
+                expectedPage.getTotalPages(),
+                expectedPage.getTotalElements(),
+                expectedPage.getNumberOfElements(),
+                expectedPage.getSort().isSorted(),
+                expectedPage.isFirst(),
+                expectedPage.isEmpty(),
+                expectedPage.isLast(),
+                expectedPage.hasNext()
+        );
+
         when(postRepository.findAll(pageable)).thenReturn(expectedPage);
+        when(pageMapper.toDTO(any(Page.class))).thenReturn(mockedPageResponse);
 
-        PageResponseDTO<PostResponseDTO> sut = postService.listPosts(pageable);
+        PageResponseDTO<PostResponseDTO> result = postService.listPosts(pageable);
 
-        assertThat(sut.totalElements()).isEqualTo(POSTS_RESPONSE_PAGE.totalElements());
-        assertThat(sut.content()).hasSize(POSTS_RESPONSE_PAGE.content().size());
+        assertThat(result.totalElements()).isEqualTo(1);
+        assertThat(result.content()).hasSize(1);
+
+        verify(postRepository, times(1)).findAll(pageable);
+    }
+
+    @Test
+    @DisplayName("Should return empty page when no posts exist")
+    void shouldReturnEmptyPageWhenNoPostsExist() {
+        Pageable pageable = PageRequest.of(DEFAULT_PAGE, DEFAULT_SIZE);
+        Page<Post> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        PageResponseDTO<PostResponseDTO> emptyResponse = new PageResponseDTO<>(
+                emptyPage.getContent().stream().map(postMapper::toDTO).toList(),
+                emptyPage.getNumber(),
+                emptyPage.getSize(),
+                emptyPage.getTotalPages(),
+                emptyPage.getTotalElements(),
+                emptyPage.getNumberOfElements(),
+                emptyPage.getSort().isSorted(),
+                emptyPage.isFirst(),
+                emptyPage.isEmpty(),
+                emptyPage.isLast(),
+                emptyPage.hasNext()
+        );
+
+        when(postRepository.findAll(pageable)).thenReturn(emptyPage);
+        when(pageMapper.toDTO(any(Page.class))).thenReturn(emptyResponse);
+
+        PageResponseDTO<PostResponseDTO> result = postService.listPosts(pageable);
+
+        assertThat(result.content()).isEmpty();
+        assertThat(result.totalElements()).isZero();
+        assertThat(result.isEmpty()).isTrue();
 
         verify(postRepository, times(1)).findAll(pageable);
     }
 
     @Test
     @DisplayName("Should return post when given existing id")
-    void findById_WithExistingId_ReturnsPost() {
-        when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
-        when(postMapper.toDTO(any(Post.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
+    void shouldReturnPostWhenGivenExistingId() {
+        when(postRepository.findById(mockedPostEntity.getId())).thenReturn(Optional.of(mockedPostEntity));
+        when(postMapper.toDTO(any(Post.class))).thenReturn(mockedPostResponse);
 
-        PostResponseDTO sut = postService.findById(VALID_POST_ENTITY.getId());
+        PostResponseDTO sut = postService.findById(mockedPostEntity.getId());
 
-        assertThat(sut.id()).isEqualTo(SAVED_POST_RESPONSE_DTO.id());
-        assertThat(sut.title()).isEqualTo(SAVED_POST_RESPONSE_DTO.title());
+        assertThat(sut.id()).isEqualTo(mockedPostResponse.id());
+        assertThat(sut.title()).isEqualTo(mockedPostResponse.title());
 
-        verify(postRepository, times(1)).findById(VALID_POST_ENTITY.getId());
+        verify(postRepository, times(1)).findById(mockedPostEntity.getId());
     }
 
     @Test
     @DisplayName("Should throw PostNotFoundException when id does not exist")
-    void findById_WithNonExistingId_ThrowsPostNotFoundException() {
-        when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
+    void shouldThrowPostNotFoundExceptionWhenIdDoesNotExist() {
+        String invalidId = "68e0234a70424186e056e45f";
 
-        assertThrows(PostNotFoundException.class, () -> postService.findById(INVALID_POST_ID));
+        when(postRepository.findById(invalidId)).thenReturn(Optional.empty());
 
-        verify(postRepository, times(1)).findById(INVALID_POST_ID);
+        assertThrows(PostNotFoundException.class, () -> postService.findById(invalidId));
+
+        verify(postRepository, times(1)).findById(invalidId);
     }
 
 
     @Test
-    @DisplayName("Should return updated post when given valid request data and existing id")
-    void update_WithValidRequestDataAndExistingId_ReturnsUpdatedPost() {
-        when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
-        when(postMapper.updateEntityFromDTO(any(PostRequestDTO.class), any(Post.class))).thenReturn(SAVED_POST_ENTITY);
-        when(postMapper.toDTO(any(Post.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
+    @DisplayName("Should successfully update post when given existing id and valid request data")
+    void shouldUpdatePostWhenGivenExistingIdAndValidRequestData() {
+        PostRequestDTO requestDTO = new PostRequestDTO(VALID_TITLE, VALID_DESCRIPTION, VALID_BODY);
+
+        when(postRepository.findById(mockedPostEntity.getId())).thenReturn(Optional.of(mockedPostEntity));
+        when(postMapper.updateEntityFromDTO(any(PostRequestDTO.class), any(Post.class))).thenReturn(mockedPostEntity);
+        when(postMapper.toDTO(any(Post.class))).thenReturn(mockedPostResponse);
         when(postRepository.save(any(Post.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
 
-        PostResponseDTO sut = postService.update(VALID_POST_ENTITY.getId(), VALID_POST_REQUEST_DTO);
+        PostResponseDTO response = postService.update(mockedPostEntity.getId(), requestDTO);
 
-        assertThat(sut.id()).isEqualTo(SAVED_POST_RESPONSE_DTO.id());
-        assertThat(sut.title()).isEqualTo(SAVED_POST_RESPONSE_DTO.title());
-        assertThat(sut.createdAt()).isEqualTo(SAVED_POST_RESPONSE_DTO.createdAt());
+        assertThat(response.id()).isEqualTo(mockedPostResponse.id());
+        assertThat(response.title()).isEqualTo(mockedPostResponse.title());
+        assertThat(response.createdAt()).isEqualTo(mockedPostResponse.createdAt());
+        assertThat(response.updatedAt()).isNotNull();
 
-        verify(postRepository, times(1)).findById(VALID_POST_ENTITY.getId());
+        verify(postRepository, times(1)).findById(mockedPostEntity.getId());
         verify(postRepository, times(1)).save(any(Post.class));
     }
 
     @Test
     @DisplayName("Should throw PostNotFoundException when updating post with non existing id")
-    void update_WithNonExistingId_ThrowsPostNotFoundException() {
-        when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
+    void shouldThrowPostNotFoundExceptionWhenUpdatingPostWithNonExistingId() {
+        String invalidId = "68e0234a70424186e056e45f";
+        PostRequestDTO requestDTO = new PostRequestDTO(VALID_TITLE, VALID_DESCRIPTION, VALID_BODY);
 
-        assertThrows(PostNotFoundException.class, () -> postService.update(INVALID_POST_ID, VALID_POST_REQUEST_DTO));
+        when(postRepository.findById(invalidId)).thenReturn(Optional.empty());
 
-        verify(postRepository, times(1)).findById(INVALID_POST_ID);
+        assertThrows(PostNotFoundException.class, () -> postService.update(invalidId, requestDTO));
+
+        verify(postRepository, times(1)).findById(invalidId);
     }
 
     @Test
     @DisplayName("Should delete post when given existing id")
-    void delete_WithExistingId_DeletesPost() {
-        when(postRepository.findById(VALID_POST_ENTITY.getId())).thenReturn(Optional.of(VALID_POST_ENTITY));
+    void shouldDeletePostWhenGivenExistingId() {
+        when(postRepository.findById(mockedPostEntity.getId())).thenReturn(Optional.of(mockedPostEntity));
 
-        doNothing().when(postRepository).deleteById(VALID_POST_ENTITY.getId());
+        doNothing().when(postRepository).deleteById(mockedPostEntity.getId());
 
-        postService.delete(VALID_POST_ENTITY.getId());
+        postService.delete(mockedPostEntity.getId());
 
-        verify(postRepository, times(1)).findById(VALID_POST_ENTITY.getId());
-        verify(postRepository, times(1)).deleteById(VALID_POST_ENTITY.getId());
+        verify(postRepository, times(1)).findById(mockedPostEntity.getId());
+        verify(postRepository, times(1)).deleteById(mockedPostEntity.getId());
     }
 
     @Test
     @DisplayName("Should throw PostNotFoundException when deleting post with non existing id")
-    void delete_WithNonExistingId_ThrowsPostNotFoundException() {
-        when(postRepository.findById(INVALID_POST_ID)).thenReturn(Optional.empty());
+    void shouldThrowPostNotFoundExceptionWhenDeletingPostWithNonExistingId() {
+        String invalidId = "68e0234a70424186e056e45f";
 
-        assertThrows(PostNotFoundException.class, () -> postService.delete(INVALID_POST_ID));
+        when(postRepository.findById(invalidId)).thenReturn(Optional.empty());
 
-        verify(postRepository, times(1)).findById(INVALID_POST_ID);
-        verify(postRepository, never()).deleteById(INVALID_POST_ID);
+        assertThrows(PostNotFoundException.class, () -> postService.delete(invalidId));
+
+        verify(postRepository, times(1)).findById(invalidId);
+        verify(postRepository, never()).deleteById(invalidId);
     }
 }

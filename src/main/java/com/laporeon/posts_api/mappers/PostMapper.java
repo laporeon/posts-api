@@ -20,11 +20,12 @@ public class PostMapper {
     }
 
     public Post toEntity(PostRequestDTO dto) {
-        Post post = new Post();
-        post.setTitle(dto.title());
-        post.setDescription(dto.description());
-        post.setBody(dto.body());
-        return post;
+        return new Post()
+                .builder()
+                .title(dto.title())
+                .description(dto.description())
+                .body(dto.body())
+                .build();
     }
 
     public Post updateEntityFromDTO(PostRequestDTO dto, Post post) {

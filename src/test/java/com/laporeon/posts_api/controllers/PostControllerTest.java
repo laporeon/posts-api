@@ -2,8 +2,12 @@ package com.laporeon.posts_api.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laporeon.posts_api.dto.request.PostRequestDTO;
+import com.laporeon.posts_api.dto.response.PageResponseDTO;
+import com.laporeon.posts_api.dto.response.PostResponseDTO;
 import com.laporeon.posts_api.exceptions.PostNotFoundException;
 import com.laporeon.posts_api.services.PostService;
+import org.bson.types.ObjectId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +18,18 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.laporeon.posts_api.commom.Constants.*;
-import static org.hamcrest.Matchers.hasItem;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PostController.class)
+@DisplayName("PostController Tests")
 class PostControllerTest {
 
     @Autowired
@@ -33,117 +41,216 @@ class PostControllerTest {
     @MockitoBean
     private PostService postService;
 
-    @Test
-    @DisplayName("Should return 201 and saved post when given valid request data")
-    void create_WithValidRequestData_ReturnsCreatedAndPost() throws Exception {
-        when(postService.create(any(PostRequestDTO.class))).thenReturn(SAVED_POST_RESPONSE_DTO);
 
-        mockMvc.perform(post("/posts")
+    private static final String VALID_TITLE = "Getting Started with Spring Boot";
+    private static final String VALID_DESCRIPTION = "A comprehensive guide to building REST APIs with Spring Boot framework.";
+    private static final String VALID_BODY = "Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications.";
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 10;
+    private static final String POSTS_ENDPOINT = "/posts";
+
+    private PostResponseDTO mockedPostResponse;
+    private String validPostId;
+    private Instant createdAt;
+    private Instant updatedAt;
+
+    @BeforeEach
+    void setUp() {
+        validPostId = new ObjectId().toString();
+        createdAt = Instant.now().minus(1, ChronoUnit.DAYS);
+        updatedAt = Instant.now();
+
+        mockedPostResponse = new PostResponseDTO(
+                validPostId,
+                VALID_TITLE,
+                VALID_DESCRIPTION,
+                VALID_BODY,
+                createdAt,
+                updatedAt
+        );
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/posts - Should return 201 when given valid request data")
+    void shouldReturnCreatedWhenGivenValidRequestData() throws Exception {
+        PostRequestDTO validRequest = new PostRequestDTO(VALID_TITLE, VALID_DESCRIPTION, VALID_BODY);
+
+        when(postService.create(any(PostRequestDTO.class))).thenReturn(mockedPostResponse);
+
+        mockMvc.perform(post(POSTS_ENDPOINT)
                        .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(VALID_POST_REQUEST_DTO)))
+                       .content(objectMapper.writeValueAsString(validRequest)))
                .andExpect(status().isCreated())
-               .andExpect(jsonPath("$.id").value(SAVED_POST_RESPONSE_DTO.id()))
-               .andExpect(jsonPath("$.title").value(SAVED_POST_RESPONSE_DTO.title()));
+               .andExpect(jsonPath("$.id").value(mockedPostResponse.id()))
+               .andExpect(jsonPath("$.title").value(mockedPostResponse.title()));
     }
 
 
     @Test
-    @DisplayName("Should return 400 when required fields are missing or invalid")
-    void create_WithMissingOrInvalidFields_ReturnsBadRequest() throws Exception {
-        mockMvc.perform(post("/posts")
+    @DisplayName("POST /api/v1/posts - Should return 400 when required fields are missing")
+    void shouldReturn400WhenRequiredFieldsAreMissing() throws Exception {
+        PostRequestDTO invalidRequest = new PostRequestDTO(null, null, null);
+
+        mockMvc.perform(post(POSTS_ENDPOINT)
                        .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(INVALID_POST_REQUEST_DTO)))
+                       .content(objectMapper.writeValueAsString(invalidRequest)))
                .andExpect(status().isBadRequest())
                .andExpect(jsonPath("$.error").value(HttpStatus.BAD_REQUEST.name()))
-               .andExpect(jsonPath("$.messages").isArray())
-               .andExpect(jsonPath("$.messages", hasItem("Title is required.")))
-               .andExpect(jsonPath("$.messages", hasItem("Description is required.")))
-               .andExpect(jsonPath("$.messages", hasItem("Body content is required.")));
+               .andExpect(jsonPath("$.messages").isMap())
+               .andExpect(jsonPath("$.messages.title").value("Title is required."))
+               .andExpect(jsonPath("$.messages.description").value("Description is required."))
+               .andExpect(jsonPath("$.messages.body").value("Body content is required."));
     }
 
     @Test
-    @DisplayName("Should return 200 and paginated posts")
-    void listPosts_ReturnsOkAndPagedPosts() throws Exception {
-        when(postService.listPosts(any(Pageable.class))).thenReturn(POSTS_RESPONSE_PAGE);
+    @DisplayName("POST /api/v1/posts - Should return 400 when given invalid required fields")
+    void shouldReturn400WhenGivenInvalidRequiredFields() throws Exception {
+        PostRequestDTO invalidRequest = new PostRequestDTO("tit", "desc", "body");
 
-        mockMvc.perform(get("/posts")
-                       .param("page", "0")
-                       .param("size", "10"))
+        mockMvc.perform(post(POSTS_ENDPOINT)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(invalidRequest)))
+               .andExpect(status().isBadRequest())
+               .andExpect(jsonPath("$.error").value(HttpStatus.BAD_REQUEST.name()))
+               .andExpect(jsonPath("$.messages").isMap())
+               .andExpect(jsonPath("$.messages.title").value("Title must be between 10 and 100 characters long."))
+               .andExpect(jsonPath("$.messages.description").value("Description must be between 20 and 150 characters long."))
+               .andExpect(jsonPath("$.messages.body").value("Body content must be between 60 and 500 characters long."));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/posts - Should return 200 and paginated posts")
+    void shouldReturn200AndPaginatedPosts() throws Exception {
+        List<PostResponseDTO> content = List.of(mockedPostResponse);
+        PageResponseDTO<PostResponseDTO> pageResponse = new PageResponseDTO<>(
+                content,
+                DEFAULT_PAGE,
+                DEFAULT_SIZE,
+                1,
+                1,
+                1,
+                true,
+                true,
+                false,
+                true,
+                false
+        );
+
+        when(postService.listPosts(any(Pageable.class))).thenReturn(pageResponse);
+
+        mockMvc.perform(get(POSTS_ENDPOINT)
+                                .param("page", String.valueOf(DEFAULT_PAGE))
+                                .param("size", String.valueOf(DEFAULT_SIZE)))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.content").isArray())
                .andExpect(jsonPath("$.content").isNotEmpty())
-               .andExpect(jsonPath("$.totalElements").value(POSTS_RESPONSE_PAGE.totalElements()))
-               .andExpect(jsonPath("$.pageNumber").value(0))
-               .andExpect(jsonPath("$.pageSize").value(POSTS_RESPONSE_PAGE.pageSize()))
-               .andExpect(jsonPath("$.totalPages").value(POSTS_RESPONSE_PAGE.totalPages()))
-               .andExpect(jsonPath("$.isSorted").value(true));
+               .andExpect(jsonPath("$.totalElements").value(1))
+               .andExpect(jsonPath("$.pageNumber").value(DEFAULT_PAGE))
+               .andExpect(jsonPath("$.pageSize").value(DEFAULT_SIZE));
     }
 
     @Test
-    @DisplayName("Should return 200 and post when id exists")
-    void findPostById_WithExistingId_ReturnsOkAndPost() throws Exception {
-        when(postService.findById(VALID_POST_ENTITY.getId())).thenReturn(SAVED_POST_RESPONSE_DTO);
+    @DisplayName("GET /api/v1/posts - Should return 200 with empty content when no posts exist")
+    void shouldReturn200WithEmptyContentWhenNoPostsExist() throws Exception {
+        PageResponseDTO<PostResponseDTO> emptyPage = new PageResponseDTO<>(
+                List.of(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                false,
+                false,
+                true,
+                true,
+                false
+        );
 
-        mockMvc.perform(get("/posts/{id}",VALID_POST_ENTITY.getId()))
+        when(postService.listPosts(any(Pageable.class))).thenReturn(emptyPage);
+
+        mockMvc.perform(get(POSTS_ENDPOINT))
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$.id").value(SAVED_POST_RESPONSE_DTO.id()))
-               .andExpect(jsonPath("$.title").value(SAVED_POST_RESPONSE_DTO.title()));
+               .andExpect(jsonPath("$.content").isEmpty())
+               .andExpect(jsonPath("$.totalElements").value(0));
     }
 
     @Test
-    @DisplayName("Should return 404 when finding post with non existing id")
-    void findPostById_WithNonExistingId_ReturnsNotFound() throws Exception {
-        when(postService.findById(INVALID_POST_ID)).thenThrow(new PostNotFoundException(INVALID_POST_ID));
+    @DisplayName("GET /api/v1/posts/{id} - Should return 200 when id exists")
+    void shouldReturn200WhenIdExists() throws Exception {
+        when(postService.findById(validPostId)).thenReturn(mockedPostResponse);
 
-        mockMvc.perform(get("/posts/{id}", INVALID_POST_ID))
+        mockMvc.perform(get(POSTS_ENDPOINT + "/" + validPostId))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.id").value(mockedPostResponse.id()))
+               .andExpect(jsonPath("$.title").value(mockedPostResponse.title()));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/posts/{id} - Should return 404 when id does not exists")
+    void shouldReturn404WhenIdDoesNotExists() throws Exception {
+        String invalidId = "68e0124a70424186e056e45d";
+
+        when(postService.findById(invalidId)).thenThrow(new PostNotFoundException(invalidId));
+
+        mockMvc.perform(get(POSTS_ENDPOINT + "/" + invalidId))
                .andExpect(status().isNotFound())
                .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
     }
 
     @Test
-    @DisplayName("Should return 200 when updating post with existing id and valid request data")
-    void update_WithExistingIdAndValidRequestData_ReturnsOkAndPost() throws Exception {
-        when(postService.update(eq(VALID_POST_ENTITY.getId()), any(PostRequestDTO.class)))
-                .thenReturn(SAVED_POST_RESPONSE_DTO);
+    @DisplayName("PUT /api/v1/posts/{id} - Should return 200 when updating post with existing id and valid request data")
+    void shouldReturn200WhenUpdatingPostWithExistingIdAndValidRequestData() throws Exception {
+        PostRequestDTO validRequest = new PostRequestDTO(VALID_TITLE, VALID_DESCRIPTION, VALID_BODY);
 
-        mockMvc.perform(put("/posts/{id}", VALID_POST_ENTITY.getId())
+        when(postService.update(eq(validPostId), any(PostRequestDTO.class)))
+                .thenReturn(mockedPostResponse);
+
+        mockMvc.perform(put(POSTS_ENDPOINT + "/" + validPostId)
                        .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(VALID_POST_REQUEST_DTO)))
+                       .content(objectMapper.writeValueAsString(validRequest)))
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$.title").value(SAVED_POST_RESPONSE_DTO.title()));
+               .andExpect(jsonPath("$.id").value(mockedPostResponse.id()))
+               .andExpect(jsonPath("$.title").value(mockedPostResponse.title()))
+               .andExpect(jsonPath("$.description").value(mockedPostResponse.description()))
+               .andExpect(jsonPath("$.body").value(mockedPostResponse.body()));
     }
 
     @Test
-    @DisplayName("Should return 404 when updating post with non existing id")
-    void update_WithNonExistingId_ReturnsNotFound() throws Exception {
-        doThrow(new PostNotFoundException(INVALID_POST_ID))
+    @DisplayName("PUT /api/v1/posts/{id} - Should return 404 when updating post with non existing id")
+    void shouldReturn404WhenGivenNonExistingId() throws Exception {
+        String invalidId = "68e0124a70424186e056e45d";
+        PostRequestDTO validRequest = new PostRequestDTO(VALID_TITLE, VALID_DESCRIPTION, VALID_BODY);
+
+        doThrow(new PostNotFoundException(invalidId))
                 .when(postService)
-                .update(INVALID_POST_ID, VALID_POST_REQUEST_DTO);
+                .update(invalidId, validRequest);
 
-        mockMvc.perform(put("/posts/{id}", INVALID_POST_ID)
+        mockMvc.perform(put(POSTS_ENDPOINT + "/" + invalidId)
                        .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(VALID_POST_REQUEST_DTO)))
+                       .content(objectMapper.writeValueAsString(validRequest)))
                .andExpect(status().isNotFound())
                .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
     }
 
     @Test
-    @DisplayName("Should return 204 when deleting post with existing id")
-    void delete_WithExistingId_ReturnsNoContent() throws Exception {
-        doNothing().when(postService).delete(VALID_POST_ENTITY.getId());
+    @DisplayName("DELETE /api/v1/posts/{id} - Should return 204 when deleting post with existing id")
+    void shouldReturn204WhenDeletingPostWithExistingId() throws Exception {
+        doNothing().when(postService).delete(validPostId);
 
-        mockMvc.perform(delete("/posts/{id}", VALID_POST_ENTITY.getId()))
+        mockMvc.perform(delete(POSTS_ENDPOINT + "/" + validPostId))
                .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("Should return 404 when deleting post with non existing id")
-    void delete_WithNonExistingId_ReturnsNotFound() throws Exception {
-        doThrow(new PostNotFoundException(INVALID_POST_ID))
-                .when(postService)
-                .delete(INVALID_POST_ID);
+    @DisplayName("DELETE /api/v1/posts/{id} - Should return 404 when deleting post with non existing id")
+    void shouldReturn404WhenDeletingPostWithNonExistingId() throws Exception {
+        String invalidId = "68e0124a70424186e056e45d";
 
-        mockMvc.perform(delete("/posts/{id}", INVALID_POST_ID))
+        doThrow(new PostNotFoundException(invalidId))
+                .when(postService)
+                .delete(invalidId);
+
+        mockMvc.perform(delete(POSTS_ENDPOINT + "/" + invalidId))
                .andExpect(status().isNotFound())
                .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
     }
