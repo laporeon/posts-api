@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -17,11 +17,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDTO> handleValidationException(MethodArgumentNotValidException ex) {
 
-        List<String> messages = ex.getBindingResult()
-                                .getFieldErrors()
-                                .stream()
-                                .map(error -> error.getDefaultMessage())
-                                .collect(Collectors.toList());
+        Map<String, String> messages = new HashMap<>();
+
+        ex.getBindingResult()
+          .getFieldErrors()
+          .stream()
+          .forEach(error ->
+              messages.put(error.getField(), error.getDefaultMessage())
+          );
 
         ErrorResponseDTO dto = buildError(HttpStatus.BAD_REQUEST, messages);
 
@@ -30,13 +33,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PostNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handlePostNotFoundException(PostNotFoundException ex) {
+        Map<String, String> messages = new HashMap<>();
+        messages.put("id", ex.getMessage());
 
-        ErrorResponseDTO error = buildError(HttpStatus.NOT_FOUND, List.of(ex.getMessage()));
+        ErrorResponseDTO error = buildError(HttpStatus.NOT_FOUND, messages);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    private ErrorResponseDTO buildError(HttpStatus status, List<String> messages) {
+    private ErrorResponseDTO buildError(HttpStatus status, Map<String, String> messages) {
         return new ErrorResponseDTO(
                 status.value(),
                 status.name(),
