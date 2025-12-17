@@ -1,52 +1,67 @@
 package com.laporeon.posts_api.exceptions;
 
 import com.laporeon.posts_api.dto.response.ErrorResponseDTO;
+import com.laporeon.posts_api.dto.response.ValidationErrorResponseDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ValidationErrorResponseDTO> handleValidationException(MethodArgumentNotValidException ex) {
 
-        Map<String, String> messages = new HashMap<>();
+        List<Map<String, String>> errors = ex.getBindingResult()
+                                             .getFieldErrors()
+                                             .stream()
+                                             .sorted(Comparator.comparing(FieldError::getField))
+                                             .map(err -> Map.of(
+                                                     "field", err.getField(),
+                                                     "message", err.getDefaultMessage()))
+                                             .toList();
 
-        ex.getBindingResult()
-          .getFieldErrors()
-          .stream()
-          .forEach(error ->
-              messages.put(error.getField(), error.getDefaultMessage())
-          );
+        ValidationErrorResponseDTO error = new ValidationErrorResponseDTO(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                "Request validation failed for one or more fields",
+                errors,
+                Instant.now());
 
-        ErrorResponseDTO dto = buildError(HttpStatus.BAD_REQUEST, messages);
-
-        return ResponseEntity.badRequest().body(dto);
+        return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(PostNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handlePostNotFoundException(PostNotFoundException ex) {
-        Map<String, String> messages = new HashMap<>();
-        messages.put("id", ex.getMessage());
-
-        ErrorResponseDTO error = buildError(HttpStatus.NOT_FOUND, messages);
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                Instant.now()
+        );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    private ErrorResponseDTO buildError(HttpStatus status, Map<String, String> messages) {
-        return new ErrorResponseDTO(
-                status.value(),
-                status.name(),
-                messages,
-                Instant.now()
-        );
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDTO> handleException(Exception ex) {
+        log.error("An unexpected error occurred {}", ex.getMessage());
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "An unexpected error occurred",
+                Instant.now());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
 }
