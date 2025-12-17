@@ -64,7 +64,6 @@ Rename  `.env.example` to `.env` and modify variables according to your needs.
 | MONGO_PASSWORD | Optional (Default: "dbpassword") | **Required**                | MongoDB password |
 | MONGO_DATABASE       | Optional (Default: "posts")      | Optional (Default: "posts") | MongoDB database |
 
-              | posts     | Database name    |
 ## Usage
 
 ### **Starting**
