@@ -50,24 +50,21 @@ comprehensive REST API that simulates a backend service for a personal blog plat
 
 #### **.env**
 
-If you're using Docker, configuring `.env` file is optional. [Docker Compose file](./docker-compose.yml) includes
-fallback default values if `.env` is not present.
-
-For local development **without Docker**, you must set `MONGO_USER` and `MONGO_PASSWORD` environment variables to
+Using Docker, `.env` file is optional since default values exist in [Docker Compose file](./docker-compose.yml). For
+local development **without Docker**, you must set `MONGO_USER` and `MONGO_PASSWORD` environment variables to
 connect to your MongoDB instance properly. Other variables have sensible fallback defaults in the application
 configuration.
 
-To customize these settings, rename `.env.example` to `.env` and modify variables according to your needs.
+Rename  `.env.example` to `.env` and modify variables according to your needs.
 
-| Variable       | For Docker | For Local Development | Default   | Description      |
-|----------------|------------|-----------------------|-----------|------------------|
-| SERVER_PORT    | Optional   | Optional              | 8080      | Server port      |
-| MONGO_USER     | Optional   | **Required**          | -         | MongoDB username |
-| MONGO_PASSWORD | Optional   | **Required**          | -         | MongoDB password |
-| MONGO_DATABASE | Optional   | Optional              | posts     | Database name    |
-| MONGO_HOST     | Optional   | Optional              | localhost | MongoDB host     |
-| MONGO_PORT     | Optional   | Optional              | 27017     | MongoDB port     |
+| Variable          | For Docker                       | For Local Development       | Description         |
+|-------------------|----------------------------------|-----------------------------|---------------------|
+| PORT              | Optional (Default: "8080")       | Optional (Default: "8080")  | Server port         |
+| MONGO_USER     | Optional (Default: "trademap")   | **Required**                | MongoDB username |
+| MONGO_PASSWORD | Optional (Default: "dbpassword") | **Required**                | MongoDB password |
+| MONGO_DATABASE       | Optional (Default: "posts")      | Optional (Default: "posts") | MongoDB database |
 
+              | posts     | Database name    |
 ## Usage
 
 ### **Starting**
@@ -83,11 +80,11 @@ Access the application at `http://localhost:8080/api/v1/posts` (or the port you 
 
 ### **Routes**
 
-| Route               | HTTP Method | Params                                                                                                                                                                                                         | Description                              | Auth Method |
-|---------------------|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|-------------|
-| `/api/v1/docs`      | GET         | -                                                                                                                                                                                                              | Swagger documentation                    | None        |
-| `/api/v1/posts`     | POST        | Body with `title`, `description` and `body`.                                                                                                                                                                   | Create a new post                        | None        |
-| `/api/v1/posts`     | GET         | **Query Parameters:**<br>• `page` - Page number (default: 0)<br>• `size` - Page size (default: 10)<br>• `orderBy` - Sort field (default: "title")<br>• `direction` - Sort direction: ASC/DESC (default: "ASC") | Retrieve paginated posts with sorting    | None        |
+| Route        | HTTP Method | Params                                                                                                                                                                                                         | Description                              | Auth Method |
+|--------------|-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|-------------|
+| `/docs`      | GET         | -                                                                                                                                                                                                              | Swagger documentation                    | None        |
+| `/api/v1/posts` | POST        | Body with `title`, `description` and `body`.                                                                                                                                                                   | Create a new post                        | None        |
+| `/api/v1/posts` | GET         | **Query Parameters:**<br>• `page` - Page number (default: 0)<br>• `size` - Page size (default: 10)<br>• `orderBy` - Sort field (default: "title")<br>• `direction` - Sort direction: ASC/DESC (default: "ASC") | Retrieve paginated posts with sorting    | None        |
 | `/api/v1/posts/:id` | GET         | `:id`                                                                                                                                                                                                          | Retrieve existing post by its unique id. | None        |
 | `/api/v1/posts/:id` | PUT         | `:id` + Body with `title`, `description` and `body`.                                                                                                                                                           | Update post information                  | None        |
 | `/api/v1/posts/:id` | DELETE      | `:id`                                                                                                                                                                                                          | Delete an existing post.                 | None        |
