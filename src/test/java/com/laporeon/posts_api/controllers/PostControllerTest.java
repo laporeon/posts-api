@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,13 +40,14 @@ class PostControllerTest {
     @MockitoBean
     private PostService postService;
 
-
     private static final String VALID_TITLE = "Getting Started with Spring Boot";
     private static final String VALID_DESCRIPTION = "A comprehensive guide to building REST APIs with Spring Boot framework.";
     private static final String VALID_BODY = "Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications.";
+    private static final String VALIDATION_ERROR_MESSAGE = "Request validation failed for one or more fields";
+    private static final String NOT_FOUND_MESSAGE = "Post with id %s not found.";
     private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 10;
-    private static final String POSTS_ENDPOINT = "/posts";
+    private static final String POSTS_ENDPOINT = "/api/v1/posts";
 
     private PostResponseDTO mockedPostResponse;
     private String validPostId;
@@ -95,11 +95,14 @@ class PostControllerTest {
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(invalidRequest)))
                .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.error").value(HttpStatus.BAD_REQUEST.name()))
-               .andExpect(jsonPath("$.messages").isMap())
-               .andExpect(jsonPath("$.messages.title").value("Title is required."))
-               .andExpect(jsonPath("$.messages.description").value("Description is required."))
-               .andExpect(jsonPath("$.messages.body").value("Body content is required."));
+               .andExpect(jsonPath("$.message").value(VALIDATION_ERROR_MESSAGE))
+               .andExpect(jsonPath("$.errors").isArray())
+               .andExpect(jsonPath("$.errors[0].field").value("body"))
+               .andExpect(jsonPath("$.errors[0].message").value("Body content is required."))
+               .andExpect(jsonPath("$.errors[1].field").value("description"))
+               .andExpect(jsonPath("$.errors[1].message").value("Description is required."))
+               .andExpect(jsonPath("$.errors[2].field").value("title"))
+               .andExpect(jsonPath("$.errors[2].message").value("Title is required."));
     }
 
     @Test
@@ -111,11 +114,14 @@ class PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidRequest)))
                .andExpect(status().isBadRequest())
-               .andExpect(jsonPath("$.error").value(HttpStatus.BAD_REQUEST.name()))
-               .andExpect(jsonPath("$.messages").isMap())
-               .andExpect(jsonPath("$.messages.title").value("Title must be between 10 and 100 characters long."))
-               .andExpect(jsonPath("$.messages.description").value("Description must be between 20 and 150 characters long."))
-               .andExpect(jsonPath("$.messages.body").value("Body content must be between 60 and 500 characters long."));
+               .andExpect(jsonPath("$.message").value(VALIDATION_ERROR_MESSAGE))
+               .andExpect(jsonPath("$.errors").isArray())
+               .andExpect(jsonPath("$.errors[0].field").value("body"))
+               .andExpect(jsonPath("$.errors[0].message").value("Body content must be between 60 and 500 characters long."))
+               .andExpect(jsonPath("$.errors[1].field").value("description"))
+               .andExpect(jsonPath("$.errors[1].message").value("Description must be between 20 and 150 characters long."))
+               .andExpect(jsonPath("$.errors[2].field").value("title"))
+               .andExpect(jsonPath("$.errors[2].message").value("Title must be between 10 and 100 characters long."));
     }
 
     @Test
@@ -194,7 +200,7 @@ class PostControllerTest {
 
         mockMvc.perform(get(POSTS_ENDPOINT + "/" + invalidId))
                .andExpect(status().isNotFound())
-               .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
+               .andExpect(jsonPath("$.message").value(NOT_FOUND_MESSAGE.formatted(invalidId)));
     }
 
     @Test
@@ -229,7 +235,7 @@ class PostControllerTest {
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(validRequest)))
                .andExpect(status().isNotFound())
-               .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
+               .andExpect(jsonPath("$.message").value(NOT_FOUND_MESSAGE.formatted(invalidId)));
     }
 
     @Test
@@ -252,6 +258,6 @@ class PostControllerTest {
 
         mockMvc.perform(delete(POSTS_ENDPOINT + "/" + invalidId))
                .andExpect(status().isNotFound())
-               .andExpect(jsonPath("$.error").value(HttpStatus.NOT_FOUND.name()));
+               .andExpect(jsonPath("$.message").value(NOT_FOUND_MESSAGE.formatted(invalidId)));
     }
 }
